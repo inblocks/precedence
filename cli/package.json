@@ -1,0 +1,11 @@
+{
+  "name": "@precedence/cli",
+  "version": "0.0.1",
+  "private": true,
+  "bin": {
+    "precedence": "./src/cli.js"
+  },
+  "dependencies": {
+    "axios": "^0.18.0"
+  }
+}

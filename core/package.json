@@ -1,0 +1,10 @@
+{
+  "name": "@precedence/core",
+  "private": true,
+  "dependencies": {
+    "ioredis": "^4.9.0",
+    "levelup": "^4.0.1",
+    "merkle-patricia-tree": "^3.0.0",
+    "redisdown": "^0.1.12"
+  }
+}

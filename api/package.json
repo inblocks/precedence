@@ -1,0 +1,14 @@
+{
+  "name": "@precedence/api",
+  "private": true,
+  "bin": {
+    "precedence-api": "./src/api.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "cron": "^1.7.1",
+    "express": "^4.16.4",
+    "http-errors": "^1.7.2",
+    "morgan": "^1.9.1"
+  }
+}
