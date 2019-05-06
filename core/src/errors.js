@@ -10,25 +10,39 @@ class PrecedenceError extends Error {
 
 class ConcurrentError extends PrecedenceError {
   constructor () {
-    super(2, 409)
+    super(1002, 409)
   }
 }
 
-class IdAlreadyExistsError extends PrecedenceError {
+class BlockNotFoundError extends PrecedenceError {
   constructor (id) {
-    super(3, 409, `Id "${id}" already exists`, {id})
+    super(1003, 404, `Block "${id}" not found`, {id})
   }
 }
 
-class NotFoundError extends PrecedenceError {
-  constructor (type, id) {
-    super(4, 404, `${type.charAt(0).toUpperCase()}${type.slice(1)} "${id}" not found`, {type, id})
+class ChainNotFoundError extends PrecedenceError {
+  constructor (id) {
+    super(1004, 404, `Chain "${id}" not found`, {id})
+  }
+}
+
+class RecordNotFoundError extends PrecedenceError {
+  constructor (id) {
+    super(1005, 404, `Record "${id}" not found`, {id})
+  }
+}
+
+class RecordAlreadyExistsError extends PrecedenceError {
+  constructor (id) {
+    super(1006, 409, `Record "${id}" already exists`, {id})
   }
 }
 
 module.exports = {
   PrecedenceError,
   ConcurrentError,
-  IdAlreadyExistsError,
-  NotFoundError,
+  BlockNotFoundError,
+  ChainNotFoundError,
+  RecordNotFoundError,
+  RecordAlreadyExistsError,
 }

@@ -1,6 +1,6 @@
 const util = require('util')
 
-const {IdAlreadyExistsError, NotFoundError} = require('./errors')
+const {RecordAlreadyExistsError, RecordNotFoundError, ChainNotFoundError} = require('./errors')
 const {random, sortObject, sha256} = require('./utils')
 const {getNewRedisClient, getTime, execOperations} = require('./redis')
 
@@ -8,11 +8,9 @@ const recordStream = 'record.stream'
 const chainKeyFormat = 'chain.%s'
 const recordInfoKeyFormat = 'record.info.%s'
 const recordDataKeyFormat = 'record.data.%s'
-const recordNextKeyFormat = 'record.next.%s'
 
-const recordResponse = (recordInfo, data, next) => {
+const recordResponse = (recordInfo, data) => {
   return Object.assign({}, recordInfo, {
-    next: next && next.sort() || [],
     data: data && data.toString('base64')
   })
 }
@@ -27,7 +25,7 @@ const getRecordInfo = async (redis, id) => {
   if (result) {
     return result
   } else {
-    throw new NotFoundError('record', id)
+    throw new RecordNotFoundError(id)
   }
 }
 
@@ -43,7 +41,7 @@ const getRecord = async (redis, id) => {
   } else {
     data = await redis.getBuffer(util.format(recordDataKeyFormat, recordInfo.provable.id)) || undefined
   }
-  return recordResponse(recordInfo, data, await redis.smembers(util.format(recordNextKeyFormat, id)))
+  return recordResponse(recordInfo, data)
 }
 
 const getLastRecordIdOrNull = async (redis, chain) => {
@@ -55,7 +53,7 @@ const getLastRecordId = async (redis, chain) => {
   if (id) {
     return id
   } else {
-    throw new NotFoundError('chain', chain)
+    throw new ChainNotFoundError(chain)
   }
 }
 
@@ -64,25 +62,26 @@ const createRecords = async (redis, records, preExec) => {
   try {
     const timestamp = await getTime(redis)
     const operations = []
-    const local = {chain: {}, record: {}, next: {}}
+    const local = {chain: {}, record: {}}
     const results = []
     for (const record of records) {
       const id = record.id && sha256(record.id) || random(32)
       const key = util.format(recordInfoKeyFormat, id)
       redis.watch(key)
       if (await redis.exists(key)) {
-        throw new IdAlreadyExistsError(id)
+        throw new RecordAlreadyExistsError(id)
       }
+      const seed = random(32)
       const recordInfo = {
-        provable: {id},
-        seed: random(32),
+        provable: {seed: sha256(seed), id},
+        seed,
         hash: null,
         timestamp
       }
       if (record.data) {
         operations.push(['set', util.format(recordDataKeyFormat, id), record.data])
       }
-      recordInfo.provable.data = sha256(`${recordInfo.seed} ${record.hash}`)
+      recordInfo.provable.data = sha256(`${seed} ${record.hash}`)
       const chains = {}
       const previous = {}
       for (const chain of record.chains) {
@@ -96,27 +95,19 @@ const createRecords = async (redis, records, preExec) => {
       }
       recordInfo.chains = sortObject(chains)
       recordInfo.provable.chains = Object.entries(recordInfo.chains).reduce((r, [k, v]) => {
-        r[sha256(`${recordInfo.seed} ${k}`)] = v
+        r[sha256(`${seed} ${k}`)] = v
         return r
       }, {})
       for (const id of record.previous) {
         if (!local.record[id] && (await getRecordInfoOrNull(redis, id)) === null) {
-          throw new NotFoundError('record', id)
+          throw new RecordNotFoundError(id)
         }
         local.record[id] = true
         previous[id] = true
       }
       recordInfo.provable.previous = Object.keys(previous).sort()
-      recordInfo.provable.previous.forEach(next => {
-        operations.push(['sadd', util.format(recordNextKeyFormat, next), id])
-        if (!local.next[id]) {
-          local.next[next] = [id]
-        } else {
-          local.next[next].push(id)
-        }
-      })
       recordInfo.hash = sha256(JSON.stringify(recordInfo.provable))
-      const result = recordResponse(recordInfo, record.data, local.next[id])
+      const result = recordResponse(recordInfo, record.data)
       operations.push(
         [
           'xadd', recordStream, '*',
@@ -130,9 +121,6 @@ const createRecords = async (redis, records, preExec) => {
     }
     Object.entries(local.chain).forEach(([chain, id]) => {
       operations.push(['set', util.format(chainKeyFormat, chain), id])
-    })
-    results.forEach(result => {
-      result.next = local.next[result.id] || []
     })
     if (preExec) {
       await preExec(redis, operations)

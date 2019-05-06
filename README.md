@@ -180,11 +180,7 @@ docker run --rm -i --network host redis redis-cli eval "return #redis.call('keys
 ## Ongoing developments
 
 - ECMAScript 6 with unit/integration tests, code coverage, code documentation, loggers with log level
-- listing of **_precedence_** errors
 - split modules into dedicated projects?
 - NPM publication
 - a dedicated project precedence-proof
-- features
-    - Redis auto-reconnection (bad gateway error)
-    - list nodes and chains with pagination
-    - core/redis metrics
+- Redis auto-reconnection (bad gateway error)

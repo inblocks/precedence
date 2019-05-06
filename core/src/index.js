@@ -36,12 +36,6 @@ module.exports = (options = defaults) => {
   const getBlock = (id = null) => merkle.getBlock(redisReadOnly, id)
 
   const createBlock = (empty = defaults.block.empty, max = defaults.block.max) => {
-    if (empty !== true && empty !== false) {
-      throw new Error('"empty" argument must a boolean')
-    }
-    if (isNaN(max)) {
-      throw new Error('"max" argument must a number')
-    }
     return merkle.createBlock(redisReadOnly, empty, max)
   }
 

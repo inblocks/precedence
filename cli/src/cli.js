@@ -7,9 +7,9 @@ const defaults = {
 }
 
 const exec = async (method, url, params, data, headers) => {
-  let code
+  let code = 0
   try {
-    const result = await require('axios').request({
+    process.stdout.write(`${JSON.stringify(await require('axios').request({
       headers: Object.assign({
         'user-agent': `precedence/${require('../package.json').version}`,
         'precedence-key': process.env.PRECEDENCE_KEY || null
@@ -26,8 +26,7 @@ const exec = async (method, url, params, data, headers) => {
       url,
       params,
       data
-    })
-    process.stdout.write(`${JSON.stringify(result.data, null, 2)}\n`)
+    }), null, 2)}\n`)
     code = 0
   } catch (e) {
     if (e.response) {
@@ -192,4 +191,4 @@ You can optionally specify previous existing record identifiers.`,
       }
     }
   }
-})
+}).then(code => process.exit)

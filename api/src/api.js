@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 
-const createError = require('http-errors')
-
 const precedenceDefaults = require('../../core/src/defaults')
-const PrecedenceError = require('../../core/src/errors').PrecedenceError
 const sha256 = require('../../core/src/utils').sha256
+const {MismatchError} = require('./errors')
+const {api, createError} = require('./utils')
 
 const defaults = {
   limit: 1000000,
@@ -12,49 +11,6 @@ const defaults = {
 }
 
 const log = (string) => console.log(`LOG    - ${new Date().toISOString()} - ${string}`)
-
-const api = fn => async (req, res) => {
-  let data
-  let error
-  try {
-    data = await fn(req, res)
-  } catch (e) {
-    if (e.statusCode) {
-      error = e
-    } else if (e instanceof PrecedenceError) {
-      error = createError(
-        e.status,
-        (e.message && e.message.length > 0) && e.message || null,
-        {code: e.code, data: e.data}
-      )
-    } else {
-      console.error(e)
-      error = createError(500)
-    }
-  } finally {
-    if (!res.headersSent) {
-      const result = {
-        took: Date.now() - req._startTime,
-        status: res.statusCode || 200
-      }
-      if (error) {
-        res.status(error.statusCode)
-        result.status = error.statusCode
-        result.error = {
-          code: error.code || 1,
-          message: error.message,
-        }
-        if (error.data) {
-          result.error.data = error.data
-        }
-      } else if (data) {
-        result.data = data
-      }
-      res.set('Content-Type', 'application/json; charset=utf-8')
-      res.send(req.query.pretty === "true" ? `${JSON.stringify(result, null, 2)}\n` : result)
-    }
-  }
-}
 
 require('../../common/src/').run('precedence-api', {
   _help: sections => {
@@ -119,12 +75,7 @@ require('../../common/src/').run('precedence-api', {
       }
       const hash = sha256(Buffer.isBuffer(req.body) && req.body || Buffer.from([]))
       if (req.query.hash && req.query.hash !== hash) {
-        throw createError(400, `Provided SHA-256 hexadecimal string "${req.query.hash}" mismatches the computed: "${hash}"`, {
-          data: {
-            provided: req.query.hash,
-            computed: hash
-          }
-        })
+        throw new MismatchError(req.query.hash, hash)
       }
       const chains = Array.isArray(req.query.chain) ? req.query.chain : (req.query.chain && [req.query.chain] || [])
       const previous = Array.isArray(req.query.previous) ? req.query.previous : (req.query.previous && [req.query.previous] || [])
@@ -138,7 +89,7 @@ require('../../common/src/').run('precedence-api', {
         data
       }]).then(result => {
         res.status(201)
-        return result
+        return result[0]
       })
     }))
     app.delete('/records/:id', api(req => precedence.deleteRecord(req.params.id, req.query.recursive === "true")))
@@ -157,7 +108,7 @@ require('../../common/src/').run('precedence-api', {
       })
     }))
 
-    app.all('*', api(() => Promise.reject(createError(404))))
+    app.all('*', api(() => Promise.reject(createError(418))))
     // DON'T REMOVE USELESS "next" PARAMETER -> IT IS USEFUL TO CATCH ERRORS :-)
     app.use((error, req, res, next) => api(() => Promise.reject(error))(req, res))
 
