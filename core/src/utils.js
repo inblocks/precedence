@@ -16,5 +16,5 @@ const sortObject = object => Object.keys(object).sort().reduce((r, k) => {
 module.exports = {
   random,
   sha256,
-  sortObject,
+  sortObject
 }

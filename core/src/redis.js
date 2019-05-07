@@ -1,4 +1,4 @@
-const ConcurrentError = require("./errors").ConcurrentError
+const ConcurrentError = require('./errors').ConcurrentError
 
 module.exports.getNextStreamId = id => {
   if (id) {
@@ -19,7 +19,7 @@ module.exports.objectify = array => {
   return o
 }
 
-module.exports.getNewRedisClient = (redis, override) => redis.duplicate(override || {readOnly: false})
+module.exports.getNewRedisClient = (redis, override) => redis.duplicate(override || { readOnly: false })
 
 module.exports.getTime = (redis) => {
   return redis.time().then(result => Number(`${result[0]}${Math.round(result[1] / 1000)}`))

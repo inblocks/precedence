@@ -9,7 +9,7 @@ const defaults = {
 const exec = async (method, url, params, data, headers) => {
   let code = 0
   try {
-    process.stdout.write(`${JSON.stringify(await require('axios').request({
+    process.stdout.write(`${JSON.stringify((await await require('axios').request({
       headers: Object.assign({
         'user-agent': `precedence/${require('../package.json').version}`,
         'precedence-key': process.env.PRECEDENCE_KEY || null
@@ -26,13 +26,13 @@ const exec = async (method, url, params, data, headers) => {
       url,
       params,
       data
-    }), null, 2)}\n`)
+    })).data, null, 2)}\n`)
     code = 0
   } catch (e) {
     if (e.response) {
       process.stdout.write(`${JSON.stringify(e.response.data, null, 2)}\n`)
     } else {
-      console.error(e)
+      console.error(`ERROR: ${e.message}`)
       code = 1
     }
   }
@@ -55,10 +55,10 @@ cli.run('precedence', {
     })
     return sections
   },
-  _parameters: {COMMAND: false},
+  _parameters: { COMMAND: false },
   _commands: {
     blocks: {
-      _parameters: {COMMAND: false},
+      _parameters: { COMMAND: false },
       _commands: {
         create: {
           summary: 'Create blocks',
@@ -66,11 +66,11 @@ cli.run('precedence', {
           _options: [{
             name: 'no-empty',
             type: Boolean,
-            description: `Don't create the block if it doesn't contain any record`,
+            description: `Don't create the block if it doesn't contain any record`
           }, {
             name: 'max',
             type: Number,
-            description: 'Set maximum of records in the block',
+            description: 'Set maximum of records in the block'
           }],
           _exec: (command, definitions, args, options) => exec('POST', '/blocks', {
             empty: !options['no-empty'],
@@ -81,30 +81,30 @@ cli.run('precedence', {
           summary: 'Get blocks',
           _description: `Get a block by its index (number) or its root hash (SHA-256 hexadecimal string).
 If you do not provide any argument, you get the last block.`,
-          _parameters: {'INDEX|ROOT': false},
-          _exec: (command, definitions, args) => exec('GET', `/blocks${args && `/${args[0]}` || ''}`)
-        },
+          _parameters: { 'INDEX|ROOT': false },
+          _exec: (command, definitions, args) => exec('GET', `/blocks${args ? `/${args[0]}` : ''}`)
+        }
       }
     },
     chains: {
-      _parameters: {COMMAND: false},
+      _parameters: { COMMAND: false },
       _commands: {
         get: {
           summary: 'Get records by chains',
           _description: 'Get the last record of a chain.',
-          _parameters: {NAME: true},
+          _parameters: { NAME: true },
           _exec: (command, definitions, args) => exec('GET', `/chains/${args[0]}`)
         },
         delete: {
           summary: 'Delete chains',
           _description: 'Delete the last record of the chain and recursively all of its previous.',
-          _parameters: {NAME: true},
+          _parameters: { NAME: true },
           _exec: (command, definitions, args) => exec('DELETE', `/chains/${args[0]}`)
         }
       }
     },
     records: {
-      _parameters: {COMMAND: false},
+      _parameters: { COMMAND: false },
       _commands: {
         create: {
           summary: 'Create records',
@@ -114,7 +114,7 @@ You can optionally specify the id to be sure to don't re-create a same record (i
 You can optionally specify the SHA-256 hexadecimal string and {bold.italic precedence} will create the record only if the data matches.
 You can optionally specify chain names to implicitly consider the last record identifier of each chain as a previous without having to specify them explicitly with the previous option.
 You can optionally specify previous existing record identifiers.`,
-          _parameters: {DATA: false},
+          _parameters: { DATA: false },
           _options: [{
             alias: 'c',
             name: 'chain',
@@ -165,25 +165,25 @@ You can optionally specify previous existing record identifiers.`,
               return cli.errorUsage(command, definitions, 'DATA is not defined and stdin is empty')
             }
             delete options.file
-            return exec('POST', '/records', options, buffer, {'content-type': 'application/octet-stream'})
+            return exec('POST', '/records', options, buffer, { 'content-type': 'application/octet-stream' })
           }
         },
         get: {
           summary: 'Get records',
           _description: 'Get a record by its identifier.',
-          _parameters: {ID: true},
+          _parameters: { ID: true },
           _exec: (command, definitions, args) => exec('GET', `/records/${args[0]}`)
         },
         delete: {
           summary: 'Delete records data',
           _description: 'Delete a record (data, chains).',
-          _parameters: {ID: true},
+          _parameters: { ID: true },
           _options: [
             {
               alias: 'r',
               name: 'recursive',
               type: Boolean,
-              description: 'Delete recursively all of its previous too',
+              description: 'Delete recursively all of its previous too'
             }
           ],
           _exec: (command, definitions, args, options) => exec('DELETE', `/records/${args[0]}`, options)

@@ -5,7 +5,6 @@ const record = require('./records')
 const defaults = require('./defaults')
 
 module.exports = (options = defaults) => {
-
   const namespace = options.namespace || defaults.namespace
   const redisHostPort = (options.redis || defaults.redis).split(':')
 
@@ -14,7 +13,7 @@ module.exports = (options = defaults) => {
     readOnly: true,
     host: redisHostPort[0],
     port: redisHostPort[1],
-    maxRetriesPerRequest: null,
+    maxRetriesPerRequest: null
   })
 
   const getRecord = async (id) => {
@@ -54,7 +53,6 @@ module.exports = (options = defaults) => {
     lib.extensions[key] = require(value)(key, lib)
   })
   return lib
-
 }
 
 module.exports.defaults = defaults

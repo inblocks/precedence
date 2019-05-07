@@ -2,8 +2,8 @@
 
 const precedenceDefaults = require('../../core/src/defaults')
 const sha256 = require('../../core/src/utils').sha256
-const {MismatchError} = require('./errors')
-const {api, createError} = require('./utils')
+const { MismatchError } = require('./errors')
+const { api, createError } = require('./utils')
 
 const defaults = {
   limit: 1000000,
@@ -37,7 +37,7 @@ require('../../common/src/').run('precedence-api', {
   }, {
     name: 'limit',
     type: Number,
-    description: 'TODO',
+    description: 'TODO'
   }, {
     name: 'namespace',
     type: String,
@@ -73,15 +73,15 @@ require('../../common/src/').run('precedence-api', {
       if (req.headers['content-type'] && req.headers['content-type'].toLowerCase() !== 'application/octet-stream') {
         throw createError(415, `Unsupported media type "${req.headers['content-type']}"`)
       }
-      const hash = sha256(Buffer.isBuffer(req.body) && req.body || Buffer.from([]))
+      const hash = sha256(Buffer.isBuffer(req.body) ? req.body : Buffer.from([]))
       if (req.query.hash && req.query.hash !== hash) {
         throw new MismatchError(req.query.hash, hash)
       }
-      const chains = Array.isArray(req.query.chain) ? req.query.chain : (req.query.chain && [req.query.chain] || [])
-      const previous = Array.isArray(req.query.previous) ? req.query.previous : (req.query.previous && [req.query.previous] || [])
+      const chains = Array.isArray(req.query.chain) ? req.query.chain : (req.query.chain ? [req.query.chain] : [])
+      const previous = Array.isArray(req.query.previous) ? req.query.previous : (req.query.previous ? [req.query.previous] : [])
       const id = req.query.id
-      const data = req.query.store === "true" && req.body || undefined
-      return await precedence.createRecords([{
+      const data = req.query.store === 'true' ? req.body : undefined
+      return precedence.createRecords([{
         hash,
         chains,
         previous,
@@ -92,7 +92,7 @@ require('../../common/src/').run('precedence-api', {
         return result[0]
       })
     }))
-    app.delete('/records/:id', api(req => precedence.deleteRecord(req.params.id, req.query.recursive === "true")))
+    app.delete('/records/:id', api(req => precedence.deleteRecord(req.params.id, req.query.recursive === 'true')))
 
     app.get('/chains/:chain', api(req => precedence.getLastRecord(req.params.chain)))
     app.delete('/chains/:chain', api(async req => precedence.deleteChain(req.params.chain)))
@@ -100,10 +100,10 @@ require('../../common/src/').run('precedence-api', {
     app.get('/blocks', getBlock()) //     get latest
     app.get('/blocks/:id', getBlock()) // get by root or index
     app.post('/blocks', api((req, res) => {
-      const empty = req.query['no-empty'] !== "true"
+      const empty = req.query['no-empty'] !== 'true'
       const max = req.query.max && Number(req.query.max)
       return precedence.createBlock(empty, max).then(result => {
-        res.status(result && 201 || 200)
+        res.status(result ? 201 : 200)
         return result
       })
     }))

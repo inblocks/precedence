@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 const errorUsage = (command, definitions, message) => printUsage(1, command, definitions, sections => {
   sections.push({
     raw: true,
@@ -9,7 +7,7 @@ const errorUsage = (command, definitions, message) => printUsage(1, command, def
 
 const unknownCommand = (command, definitions, subCommand) => errorUsage(command, definitions, `unknown command "${subCommand}"`)
 
-const unexpectedArguments = (command, definitions, arguments) => errorUsage(command, definitions, `unexpected argument${arguments.length > 1 ? 's' : ''} "${arguments.join('", "')}"`)
+const unexpectedArguments = (command, definitions, args) => errorUsage(command, definitions, `unexpected argument${args.length > 1 ? 's' : ''} "${args.join('", "')}"`)
 
 const unknownOption = (command, definitions, option) => errorUsage(command, definitions, `unknown option "${option}"`)
 
@@ -21,7 +19,7 @@ const missingArguments = (command, definitions, expected, provided) => {
 }
 
 const getUsage = (command, definitions) => {
-  let usage = command ? command : ''
+  let usage = command || ''
   usage += (usage.length === 0 ? '' : ' ') +
     Object.entries(definitions._parameters || {}).map(([parameter, required]) => {
       return required ? `<${parameter}>` : `[${parameter}]`
@@ -77,8 +75,12 @@ const printUsage = (code, command, definitions, modifier) => {
       content: `Run '${command} help COMMAND' for more information on a command.`
     })
   }
-  sections = modifier && modifier(sections) || sections
-  sections = definitions._help && definitions._help(sections) || sections
+  if (modifier) {
+    modifier(sections)
+  }
+  if (definitions._help) {
+    definitions._help(sections)
+  }
   console.log(require('command-line-usage')(sections))
   return code
 }
@@ -90,7 +92,7 @@ const run = async (argv, command, definitions) => {
     }
     r.max++
     return r
-  }, {min: 0, max: 0})
+  }, { min: 0, max: 0 })
   const options = []
   options.push({
     name: '*',
@@ -101,7 +103,7 @@ const run = async (argv, command, definitions) => {
   if (definitions._options) {
     options.push(...definitions._options)
   }
-  const result = require('command-line-args')(options, {argv, stopAtFirstUnknown: true})
+  const result = require('command-line-args')(options, { argv, stopAtFirstUnknown: true })
   const subCommand = definitions._commands && result['*'] && result['*'][0]
   const subDefinitions = subCommand && definitions._commands[subCommand]
   if (subCommand === 'help') {
@@ -145,7 +147,6 @@ const run = async (argv, command, definitions) => {
 process.on('SIGINT', () => {
   process.exit(0)
 })
-
 
 module.exports = {
   errorUsage,

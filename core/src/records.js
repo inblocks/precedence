@@ -1,8 +1,8 @@
 const util = require('util')
 
-const {RecordAlreadyExistsError, RecordNotFoundError, ChainNotFoundError} = require('./errors')
-const {random, sortObject, sha256} = require('./utils')
-const {getNewRedisClient, getTime, execOperations} = require('./redis')
+const { RecordAlreadyExistsError, RecordNotFoundError, ChainNotFoundError } = require('./errors')
+const { random, sortObject, sha256 } = require('./utils')
+const { getNewRedisClient, getTime, execOperations } = require('./redis')
 
 const recordStream = 'record.stream'
 const chainKeyFormat = 'chain.%s'
@@ -44,9 +44,7 @@ const getRecord = async (redis, id) => {
   return recordResponse(recordInfo, data)
 }
 
-const getLastRecordIdOrNull = async (redis, chain) => {
-  return await redis.get(util.format(chainKeyFormat, chain))
-}
+const getLastRecordIdOrNull = (redis, chain) => redis.get(util.format(chainKeyFormat, sha256(chain)))
 
 const getLastRecordId = async (redis, chain) => {
   const id = await getLastRecordIdOrNull(redis, chain)
@@ -62,10 +60,10 @@ const createRecords = async (redis, records, preExec) => {
   try {
     const timestamp = await getTime(redis)
     const operations = []
-    const local = {chain: {}, record: {}}
+    const local = { chain: {}, record: {} }
     const results = []
     for (const record of records) {
-      const id = record.id && sha256(record.id) || random(32)
+      const id = record.id ? sha256(record.id) : random(32)
       const key = util.format(recordInfoKeyFormat, id)
       redis.watch(key)
       if (await redis.exists(key)) {
@@ -73,7 +71,7 @@ const createRecords = async (redis, records, preExec) => {
       }
       const seed = random(32)
       const recordInfo = {
-        provable: {seed: sha256(seed), id},
+        provable: { seed: sha256(seed), id },
         seed,
         hash: null,
         timestamp
@@ -86,7 +84,7 @@ const createRecords = async (redis, records, preExec) => {
       const previous = {}
       for (const chain of record.chains) {
         await redis.watch([chain])
-        const last = local.chain[chain] && local.chain[chain].id || await getLastRecordIdOrNull(redis, chain)
+        const last = local.chain[chain] ? local.chain[chain].id : await getLastRecordIdOrNull(redis, chain)
         local.chain[chain] = id
         chains[chain] = last
         if (last) {
@@ -120,7 +118,7 @@ const createRecords = async (redis, records, preExec) => {
       results.push(result)
     }
     Object.entries(local.chain).forEach(([chain, id]) => {
-      operations.push(['set', util.format(chainKeyFormat, chain), id])
+      operations.push(['set', util.format(chainKeyFormat, sha256(chain)), id])
     })
     if (preExec) {
       await preExec(redis, operations)
@@ -165,7 +163,7 @@ const deleteRecord = async (redis, id, recursive = false) => {
 
 const deleteChain = async (redis, name) => {
   const result = await deleteRecord(redis, await getLastRecordId(redis, name), true)
-  await redis.del(util.format(chainKeyFormat, name))
+  await redis.del(util.format(chainKeyFormat, sha256(name)))
   return result
 }
 
