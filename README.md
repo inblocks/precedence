@@ -141,7 +141,7 @@ echo -n '2937bd4311059780ebcde82f9647d2280ba28fb2346f931466b96c59ddd9fc86' | sha
 ```
 - the obfuscated fingerprint of provided data is equal to `provable.data` value:
 ```bash
-echo -n "2937bd4311059780ebcde82f9647d2280ba28fb2346f931466b96c59ddd9fc86 $(echo -n "value 1" | sha256sum | cut -f1 -d ' ')" | sha256sum
+echo -n "2937bd4311059780ebcde82f9647d2280ba28fb2346f931466b96c59ddd9fc86 $(echo -n "value 1" | sha256sum | cut -d' ' -f1)" | sha256sum
 ```
 
 ---
@@ -263,7 +263,7 @@ curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=tru
     "seed": "2bbe2df99d414b32efe7dec1d30b1663e1622c7e652113817a0ed37656f54330",
     "hash": "169a87cf819b379f791b7bba5898974611e0f44348315f86df4412c227dfddcf",
     "timestamp": 155716018319,
-    "chains": {},
+    "chains": {}
   }
 }
 ```
@@ -377,6 +377,28 @@ The returned document contains information related to the block the record belon
 - `index` is the block number that contains this record;
 - `proof` is an array that contains the agnostic proof-of-existence of this record is the block.
 
+How to prove:
+- the fingerprint of `provable` is equal to `hash` value: `7c999a9e5217862dc8e075f0f68e8caadf210ec12aec18805c267b5e669d1d36
+```bash
+echo -n '{"seed":"b3398bed0c074f5ccaee29fe557be2c5c90834316396f8955a93939f63c0e1bb","id":"3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4","data":"c41b74145fc03ef6fdb082e44af2df97aaa841d872551c44b014d34b0c2430b5","chains":{},"previous":[]}' | sha256sum | cut -d' ' -f1
+```
+- `hash` is part of `block.proof[2]`
+```bash
+echo -n "7c999a9e5217862dc8e075f0f68e8caadf210ec12aec18805c267b5e669d1d36" | xxd -p | tr -d '\n'
+```
+- `block.proof[2]` is part of `block.proof[1]`
+```bash
+echo -n "f884b84020613331643536373437373835666166653733626336373435613164323163366238633338643134623735373366613366653330373435616465643165326334b84037633939396139653532313738363264633865303735663066363865386361616466323130656331326165633138383035633236376235653636396431643336" | xxd -r -p | keccak-256sum | cut -d' ' -f1 | tr '[:upper:]' '[:lower:]'
+```
+- `block.proof[1]` is part of `block.proof[0]`
+```bash
+echo -n "f871808080a02abdb50a1c3a89c0a01062d1c087151a07be1677432d7c63bd3475793d7a04dd80a0a96fc885c67520d2c9bb96edd084eb4456941f1247fc4402e38cb4199a63e148808080a0bf4119f0b7c0e248c27407d09798ee2aaa4d11b5b4cf07187fa2e705b9ddfe9980808080808080" | xxd -r -p | keccak-256sum | cut -d' ' -f1 | tr '[:upper:]' '[:lower:]'
+```
+- `block.proof[0]` corresponds to the block 1 `root` value: `3afdfa8d8e6749d407c144cfc67b1562411a25c493738772c7a01e418bbc0a2f`
+```bash
+echo -n "f851808080a04c8542aa07c00cfac513287a592a798718feea12cff116f5b0c2cb9581206e6c8080a01b4cbf3f415cdeda70d2a8b40baceaef365b42f5e6285ad3967a41d05695c97e80808080808080808080" | xxd -r -p | keccak-256sum | cut -d' ' -f1 | tr '[:upper:]' '[:lower:]'
+```
+
 ---
 
 You can delete the data that is stored in the record. The record itself can not be deleted because it would cause chain inconsitency.
@@ -429,7 +451,7 @@ curl -XGET "$api/records/3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745
 }
 ```
 
-The original `data` field has been removed and a new boolean field `deleted` has ben added. The record can still be proved to exist but the data has been removed from **_precedence_**. If you kept it somewhere then the proof is still valid.
+The original `data` and `chains` fields have been removed and a new boolean field `deleted` has ben added. The record can still be proved to exist but the data has been removed from **_precedence_**. If you kept it somewhere then the proof is still valid.
 
 ---
 
@@ -552,6 +574,13 @@ curl -XPOST -H "content-type: application/octet-stream" "$api/records?pretty=tru
 ```
 
 The field `chains` contains the key `chain1` whose value is the record identifier of the previously inserted record. The record has been appended at the end of the chain and the label `chain1` now refers to the newly inserted record. This information is provable because it is part of the record definition. The key stored in `provable.chains` has been obfuscated to avoid any data leak and for GDPR compliancy (these fields can't be removed except by deleting the entire chain).
+
+We can check that:
+- the obfuscated fingerprint of `chain1` is equal to `221b5f0be0cff6aee7dfd7ca6fba4362960b69df6391c606793e6a195f3efe46`:
+```bash
+echo -n "ae77537dd7cb382e9b18fb26dd6a76b793ad6892f446d74543e1a29d81ff377b chain1" | sha256sum
+```
+- the `chains.chain1` value is equal to the `provable.chains.221b5f0be0cff6aee7dfd7ca6fba4362960b69df6391c606793e6a195f3efe46` value: `893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951`
 
 ---
 
