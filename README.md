@@ -375,10 +375,10 @@ curl -XGET "$api/records/3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745
 
 The returned document contains information related to the block the record belongs to:
 - `index` is the block number that contains this record;
-- `proof` is an array that contains the agnostic proof-of-existence of this record is the block.
+- `proof` is an array that contains the agnostic proof-of-existence of this record in the block.
 
 How to prove:
-- the fingerprint of `provable` is equal to `hash` value: `7c999a9e5217862dc8e075f0f68e8caadf210ec12aec18805c267b5e669d1d36
+- the fingerprint of `provable` is equal to the `hash` value: `7c999a9e5217862dc8e075f0f68e8caadf210ec12aec18805c267b5e669d1d36`
 ```bash
 echo -n '{"seed":"b3398bed0c074f5ccaee29fe557be2c5c90834316396f8955a93939f63c0e1bb","id":"3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4","data":"c41b74145fc03ef6fdb082e44af2df97aaa841d872551c44b014d34b0c2430b5","chains":{},"previous":[]}' | sha256sum | cut -d' ' -f1
 ```
@@ -394,7 +394,7 @@ echo -n "f884b840206133316435363734373738356661666537336263363734356131643231633
 ```bash
 echo -n "f871808080a02abdb50a1c3a89c0a01062d1c087151a07be1677432d7c63bd3475793d7a04dd80a0a96fc885c67520d2c9bb96edd084eb4456941f1247fc4402e38cb4199a63e148808080a0bf4119f0b7c0e248c27407d09798ee2aaa4d11b5b4cf07187fa2e705b9ddfe9980808080808080" | xxd -r -p | keccak-256sum | cut -d' ' -f1 | tr '[:upper:]' '[:lower:]'
 ```
-- `block.proof[0]` corresponds to the block 1 `root` value: `3afdfa8d8e6749d407c144cfc67b1562411a25c493738772c7a01e418bbc0a2f`
+- `block.proof[0]` is the `root` value of the block number 1 : `3afdfa8d8e6749d407c144cfc67b1562411a25c493738772c7a01e418bbc0a2f`
 ```bash
 echo -n "f851808080a04c8542aa07c00cfac513287a592a798718feea12cff116f5b0c2cb9581206e6c8080a01b4cbf3f415cdeda70d2a8b40baceaef365b42f5e6285ad3967a41d05695c97e80808080808080808080" | xxd -r -p | keccak-256sum | cut -d' ' -f1 | tr '[:upper:]' '[:lower:]'
 ```
@@ -544,7 +544,7 @@ The field `chains` contains information about the chain state at insertion time.
 Let's insert a second record using this `chain1` label.
 
 ```bash
-curl -XPOST -H "content-type: application/octet-stream" "$api/records?pretty=true&id=2B6C83EF-474D-4A15-B1D5-A1EC7E8226CF&chain=chain1" -d "value 8"
+curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=true&id=2B6C83EF-474D-4A15-B1D5-A1EC7E8226CF&chain=chain1" -d "value 8"
 ```
 
 ```json
@@ -940,7 +940,7 @@ curl -XGET "$api/blocks/$root?pretty=true"
 
 ```bash
 # create a block with a file
-cat FILE | curl -v -XPOST -H"application/octet-stream" "http://localhost:8080/records" --data-binary @-
+cat FILE | curl -v -XPOST -H "Content-Type: application/octet-stream" "http://localhost:8080/records" --data-binary @-
 
 # redis interactive client
 docker run --rm -it --network host redis redis-cli

@@ -62,15 +62,15 @@ cli.run('precedence', {
       _commands: {
         create: {
           summary: 'Create blocks',
-          _description: 'Create a block containing records that are not yet blocked.',
+          _description: 'Create a block with all the records that are not part of any block yet.',
           _options: [{
             name: 'no-empty',
             type: Boolean,
-            description: `Don't create the block if it doesn't contain any record`
+            description: `Prevent the block creation if there are no record to write in it.`
           }, {
             name: 'max',
             type: Number,
-            description: 'Set maximum of records in the block'
+            description: 'Set the maximum number of records of this block.'
           }],
           _exec: (command, definitions, args, options) => exec('POST', '/blocks', {
             empty: !options['no-empty'],
@@ -80,7 +80,7 @@ cli.run('precedence', {
         get: {
           summary: 'Get blocks',
           _description: `Get a block by its index (number) or its root hash (SHA-256 hexadecimal string).
-If you do not provide any argument, you get the last block.`,
+If you do not provide any argument, you will get the last block.`,
           _parameters: { 'INDEX|ROOT': false },
           _exec: (command, definitions, args) => exec('GET', `/blocks${args ? `/${args[0]}` : ''}`)
         }
@@ -90,14 +90,14 @@ If you do not provide any argument, you get the last block.`,
       _parameters: { COMMAND: false },
       _commands: {
         get: {
-          summary: 'Get records by chains',
+          summary: 'Get record by chain',
           _description: 'Get the last record of a chain.',
           _parameters: { NAME: true },
           _exec: (command, definitions, args) => exec('GET', `/chains/${args[0]}`)
         },
         delete: {
-          summary: 'Delete chains',
-          _description: 'Delete the last record of the chain and recursively all of its previous.',
+          summary: 'Delete chain',
+          _description: 'Delete the last record of the chain and recursively all the records that it refers to.',
           _parameters: { NAME: true },
           _exec: (command, definitions, args) => exec('DELETE', `/chains/${args[0]}`)
         }
@@ -110,10 +110,10 @@ If you do not provide any argument, you get the last block.`,
           summary: 'Create records',
           _description: `Create a new record with given DATA.
 DATA can be optionally a file or read from the standard input (stdin).
-You can optionally specify the id to be sure to don't re-create a same record (idempotent).
-You can optionally specify the SHA-256 hexadecimal string and {bold.italic precedence} will create the record only if the data matches.
-You can optionally specify chain names to implicitly consider the last record identifier of each chain as a previous without having to specify them explicitly with the previous option.
-You can optionally specify previous existing record identifiers.`,
+You can specify the id to make sure that an already existing record is not created again (idempotent).
+You can specify the SHA-256 hexadecimal string to make sure that {bold.italic precedence} will only create the record if the hash computed from the received data matches this parameter.
+You can specify chain names to implicitly consider the last record identifier of each chain as a previous record without having to specify them explicitly using the previous parameter.
+You can explicitely set the previous record(s) of the record you are creating (by using their identifiers).`,
           _parameters: { DATA: false },
           _options: [{
             alias: 'c',
@@ -134,7 +134,7 @@ You can optionally specify previous existing record identifiers.`,
           }, {
             name: 'file',
             type: Boolean,
-            description: 'Consider DATA as a file name'
+            description: 'Use the data contained in the file named DATA'
           }, {
             alias: 'p',
             name: 'previous',
@@ -183,7 +183,7 @@ You can optionally specify previous existing record identifiers.`,
               alias: 'r',
               name: 'recursive',
               type: Boolean,
-              description: 'Delete recursively all of its previous too'
+              description: 'Delete recursively all the records defined as previous records.'
             }
           ],
           _exec: (command, definitions, args, options) => exec('DELETE', `/records/${args[0]}`, options)

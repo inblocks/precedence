@@ -25,33 +25,33 @@ require('../../common/src/').run('precedence-api', {
   _options: [{
     name: 'block-cron',
     type: String,
-    description: 'TODO example: "* * * * *" to create a block every minute'
+    description: 'To automatically and periodically create a new block. For example: "* * * * *" to create a block every minute.'
   }, {
     name: 'block-no-empty',
     type: Boolean,
-    description: 'TODO'
+    description: 'Set it to true to prevent the creation of empty blocks.'
   }, {
     name: 'block-max',
     type: Number,
-    description: 'TODO'
+    description: 'The maximum number of records that can be used to create a block.'
   }, {
     name: 'limit',
     type: Number,
-    description: 'TODO'
+    description: 'The maximum size of the data that can be received during record creation.'
   }, {
     name: 'namespace',
     type: String,
-    description: `TODO (default: ${precedenceDefaults.namespace})`,
+    description: `This option can be used to run several independent precedence instances over the same storage system (default: ${precedenceDefaults.namespace})`,
     defaultValue: precedenceDefaults.namespace
   }, {
     name: 'port',
     type: Number,
-    description: `TODO (default: ${defaults.port})`,
+    description: `The API port to use (default: ${defaults.port})`,
     defaultValue: defaults.port
   }, {
     name: 'redis',
     type: String,
-    description: `TODO (default: ${precedenceDefaults.redis})`,
+    description: `The redis server location (default: ${precedenceDefaults.redis})`,
     defaultValue: precedenceDefaults.redis
   }],
   _exec: (command, definitions, args, options) => {
