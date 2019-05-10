@@ -2,7 +2,7 @@
 
 const precedenceDefaults = require('../../core/src/defaults')
 const sha256 = require('../../core/src/utils').sha256
-const { MismatchError } = require('./errors')
+const { UnsupportedMediaTypeError, RequestEntityTooLarge, MismatchError } = require('./errors')
 const { api, createError } = require('./utils')
 
 const defaults = {
@@ -67,11 +67,11 @@ require('../../common/src/').run('precedence-api', {
 
     app.get('/records/:id', api(req => precedence.getRecord(req.params.id)))
     app.post('/records', require('body-parser').raw({
-      type: () => true,
+      type: 'application/octet-stream',
       limit: options.limit || defaults.limit
     }), api(async (req, res) => {
       if (req.headers['content-type'] && req.headers['content-type'].toLowerCase() !== 'application/octet-stream') {
-        throw createError(415, `Unsupported media type "${req.headers['content-type']}"`)
+        throw new UnsupportedMediaTypeError(req.headers['content-type'])
       }
       const hash = sha256(Buffer.isBuffer(req.body) ? req.body : Buffer.from([]))
       if (req.query.hash && req.query.hash !== hash) {
@@ -110,7 +110,12 @@ require('../../common/src/').run('precedence-api', {
 
     app.all('*', api(() => Promise.reject(createError(418))))
     // DON'T REMOVE USELESS "next" PARAMETER -> IT IS USEFUL TO CATCH ERRORS :-)
-    app.use((error, req, res, next) => api(() => Promise.reject(error))(req, res))
+    app.use((error, req, res, next) => api(() => {
+      if (error.type === 'entity.too.large') { // body-parser
+        return Promise.reject(new RequestEntityTooLarge(options.limit || defaults.limit))
+      }
+      return Promise.reject(error)
+    })(req, res))
 
     require('http').createServer(app)
       .listen(options.port || defaults.port, '0.0.0.0', () => {

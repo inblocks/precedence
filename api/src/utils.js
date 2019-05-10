@@ -18,7 +18,7 @@ const api = fn => async (req, res) => {
     if (e.statusCode) {
       error = e
     } else if (e instanceof PrecedenceError) {
-      error = createError(e.status, e.message && e.message.length > 0 && e.message, {
+      error = createError(e.status, e.message.length > 0 ? e.message : null, {
         code: e.code,
         data: e.data
       })
@@ -26,8 +26,8 @@ const api = fn => async (req, res) => {
       console.error(e)
       error = createError(500)
     }
-    result.status = error.statusCode
-    result.error = error.code || 1001
+    result.status = error.statusCode || 500
+    result.error = error.code || 'UNKNOWN'
     result.message = error.message
     result.data = error.data
   } finally {

@@ -39,6 +39,7 @@ module.exports = (options = defaults) => {
   }
 
   const lib = {
+    redisReadOnly,
     getRecord,
     getLastRecord,
     getLastRecordId,
