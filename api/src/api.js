@@ -56,6 +56,7 @@ const api = fn => async (req, res) => {
       result.data = e.data
     } else if (e.statusCode) { // http-errors
       result.status = e.statusCode
+      result.message = e.message
     } else {
       console.error(e)
     }
