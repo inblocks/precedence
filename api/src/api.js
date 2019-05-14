@@ -1,13 +1,72 @@
 #!/usr/bin/env node
 
+const createError = require('http-errors')
+
 const precedenceDefaults = require('../../core/src/defaults')
 const sha256 = require('../../core/src/utils').sha256
-const { UnsupportedMediaTypeError, RequestEntityTooLarge, MismatchError } = require('./errors')
-const { api, createError } = require('./utils')
+
+const {
+  PrecedenceError,
+  RecordNotFoundError,
+  RecordDataNotFoundError,
+  BlockNotFoundError,
+  ChainNotFoundError,
+  UnsupportedMediaTypeError,
+  RequestEntityTooLargeError,
+  MismatchError
+} = require('./errors')
 
 const defaults = {
   limit: 1000000,
   port: 9000
+}
+
+// APPEND ONLY!
+const error = {
+  'UNKNOWN': [500, 1],
+  'CORE.Conflict': [409, 2],
+  'CORE.RecordAlreadyExistsError': [409, 3],
+  'CORE.RecordNotFoundError': [404, 4],
+  'API.RecordDataNotFoundError': [404, 5],
+  'API.BlockNotFoundError': [404, 6],
+  'API.ChainNotFoundError': [404, 7],
+  'API.UnsupportedMediaTypeError': [415, 8],
+  'API.RequestEntityTooLargeError': [413, 9],
+  'API.MismatchError': [400, 10]
+}
+
+const api = fn => async (req, res) => {
+  const result = {
+    took: undefined,
+    status: undefined,
+    error: undefined,
+    message: undefined,
+    data: undefined
+  }
+  try {
+    result.data = await fn(req, res)
+    result.status = res.statusCode || 200
+  } catch (e) {
+    result.status = error.UNKNOWN[0]
+    result.error = error.UNKNOWN[1]
+    if (e instanceof PrecedenceError) {
+      result.status = error[e.type][0]
+      result.error = error[e.type][1]
+      result.message = e.message
+      result.data = e.data
+    } else if (e.statusCode) { // http-errors
+      result.status = e.statusCode
+    } else {
+      console.error(e)
+    }
+  } finally {
+    if (!res.headersSent) {
+      res.status(res.statusCode)
+      result.took = (Date.now() - req._startTime) || 1
+      res.set('Content-Type', 'application/json; charset=utf-8')
+      res.send(req.query.pretty === 'true' ? `${JSON.stringify(result, null, 2)}\n` : result)
+    }
+  }
 }
 
 const log = (string) => console.log(`LOG    - ${new Date().toISOString()} - ${string}`)
@@ -25,33 +84,33 @@ require('../../common/src/').run('precedence-api', {
   _options: [{
     name: 'block-cron',
     type: String,
-    description: 'To automatically and periodically create a new block. For example: "* * * * *" to create a block every minute.'
+    description: 'Set the cron to automatically and periodically create a new block\n(example: "* * * * *" to create a block every minute)'
   }, {
     name: 'block-no-empty',
     type: Boolean,
-    description: 'Set it to true to prevent the creation of empty blocks.'
+    description: 'To prevent the creation of empty blocks'
   }, {
     name: 'block-max',
     type: Number,
-    description: 'The maximum number of records that can be used to create a block.'
+    description: 'Set the maximum number of records that can be used to create a block'
   }, {
     name: 'limit',
     type: Number,
-    description: 'The maximum size of the data that can be received during record creation.'
+    description: 'Set the maximum bytes size of the data that can be received during record creation'
   }, {
     name: 'namespace',
     type: String,
-    description: `This option can be used to run several independent precedence instances over the same storage system (default: ${precedenceDefaults.namespace})`,
+    description: `Set the namespace to run several isolated precedence instances over the same storage system (default: ${precedenceDefaults.namespace})`,
     defaultValue: precedenceDefaults.namespace
   }, {
     name: 'port',
     type: Number,
-    description: `The API port to use (default: ${defaults.port})`,
+    description: `Set the API port to use (default: ${defaults.port})`,
     defaultValue: defaults.port
   }, {
     name: 'redis',
     type: String,
-    description: `The redis server location (default: ${precedenceDefaults.redis})`,
+    description: `Set the Redis server location (default: ${precedenceDefaults.redis})`,
     defaultValue: precedenceDefaults.redis
   }],
   _exec: (command, definitions, args, options) => {
@@ -59,13 +118,25 @@ require('../../common/src/').run('precedence-api', {
 
     const precedence = require('../../core/src')(options)
 
-    const getBlock = () => api(req => precedence.getBlock(req.params.id))
+    const getBlock = () => api(async req => {
+      const result = await precedence.getBlock(req.params.id)
+      if (!result) {
+        throw new BlockNotFoundError(req.params.id)
+      }
+      return result
+    })
 
     const app = require('express')()
 
     app.use(require('morgan')('ACCESS - :date[iso] - :remote-addr ":method :url" :status :res[content-length] ":user-agent"'))
 
-    app.get('/records/:id', api(req => precedence.getRecord(req.params.id)))
+    app.get('/records/:id', api(async req => {
+      const result = await precedence.getRecord(req.params.id)
+      if (!result) {
+        throw new RecordNotFoundError(req.params.id)
+      }
+      return result
+    }))
     app.post('/records', require('body-parser').raw({
       type: 'application/octet-stream',
       limit: options.limit || defaults.limit
@@ -92,10 +163,28 @@ require('../../common/src/').run('precedence-api', {
         return result[0]
       })
     }))
-    app.delete('/records/:id', api(req => precedence.deleteRecord(req.params.id, req.query.recursive === 'true')))
+    app.delete('/records/:id', api(async req => {
+      const result = await precedence.deleteRecord(req.params.id)
+      if (!result) {
+        throw new RecordDataNotFoundError(req.params.id)
+      }
+      return result
+    }))
 
-    app.get('/chains/:chain', api(req => precedence.getLastRecord(req.params.chain)))
-    app.delete('/chains/:chain', api(async req => precedence.deleteChain(req.params.chain)))
+    app.get('/chains/:chain', api(async req => {
+      const result = await precedence.getLastRecord(req.params.chain)
+      if (!result) {
+        throw new ChainNotFoundError(req.params.chain)
+      }
+      return result
+    }))
+    app.delete('/chains/:chain', api(async req => {
+      const result = await precedence.deleteChain(req.params.chain, req.query.data === 'true')
+      if (!result) {
+        throw new ChainNotFoundError(req.params.chain)
+      }
+      return result
+    }))
 
     app.get('/blocks', getBlock()) //     get latest
     app.get('/blocks/:id', getBlock()) // get by root or index
@@ -109,10 +198,11 @@ require('../../common/src/').run('precedence-api', {
     }))
 
     app.all('*', api(() => Promise.reject(createError(418))))
+
     // DON'T REMOVE USELESS "next" PARAMETER -> IT IS USEFUL TO CATCH ERRORS :-)
     app.use((error, req, res, next) => api(() => {
       if (error.type === 'entity.too.large') { // body-parser
-        return Promise.reject(new RequestEntityTooLarge(options.limit || defaults.limit))
+        return Promise.reject(new RequestEntityTooLargeError(options.limit || defaults.limit))
       }
       return Promise.reject(error)
     })(req, res))

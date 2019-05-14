@@ -5,7 +5,7 @@ const Trie = require('merkle-patricia-tree')
 const Levelup = require('levelup')
 const Redisdown = require('redisdown')
 
-const { ConcurrentError, BlockNotFoundError } = require('./errors')
+const { ConcurrentError } = require('./errors')
 const { getNextStreamId, objectify, getNewRedisClient, execOperations } = require('./redis')
 
 const recordStream = 'record.stream'
@@ -171,14 +171,11 @@ const getBlock = async (redis, id = null) => {
       blockLedgerStreamId = await redis.get(util.format(blockLedgerIdByIndexKeyFormat, id))
     }
     if (!blockLedgerStreamId) {
-      throw new BlockNotFoundError(id)
+      return null
     }
   }
   const block = await (blockLedgerStreamId ? getBlockInfo(redis, blockLedgerStreamId) : getLastBlockInfo(redis))
   if (!block) {
-    if (id) {
-      throw new BlockNotFoundError(id)
-    }
     return null
   }
   return blockResponse(block)

@@ -18,19 +18,28 @@ module.exports = (options = defaults) => {
 
   const getRecord = async (id) => {
     const result = await record.getRecord(redisReadOnly, id)
+    if (!result) {
+      return null
+    }
     result.block = await merkle.getProof(redisReadOnly, result.timestamp, result.provable.id)
     return result
   }
 
-  const getLastRecord = async (chain) => getRecord(await getLastRecordId(chain))
+  const getLastRecord = async (chain) => {
+    const id = await getLastRecordId(chain)
+    if (!id) {
+      return null
+    }
+    return getRecord(id)
+  }
 
   const getLastRecordId = (chain) => record.getLastRecordId(redisReadOnly, chain)
 
   const createRecords = (records, preExec = null) => record.createRecords(redisReadOnly, records, preExec)
 
-  const deleteRecord = (id, recursive = false) => record.deleteRecord(redisReadOnly, id, recursive)
+  const deleteRecord = (id) => record.deleteRecord(redisReadOnly, id)
 
-  const deleteChain = (id) => record.deleteChain(redisReadOnly, id)
+  const deleteChain = (id, data = false) => record.deleteChain(redisReadOnly, id, data)
 
   const getBlock = (id = null) => merkle.getBlock(redisReadOnly, id)
 

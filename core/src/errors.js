@@ -1,48 +1,33 @@
 class PrecedenceError extends Error {
-  constructor (code, status, message, data) {
+  constructor (type, message, data) {
     super(message)
     Error.captureStackTrace(this, this.constructor)
-    this.code = code
-    this.status = status
+    this.type = type
     this.data = data
   }
 }
 
-class ConcurrentError extends PrecedenceError {
+class ConflictError extends PrecedenceError {
   constructor () {
-    super('CORE_1', 409)
-  }
-}
-
-class BlockNotFoundError extends PrecedenceError {
-  constructor (id) {
-    super('CORE_2', 404, `Block "${id}" not found`, { id })
-  }
-}
-
-class ChainNotFoundError extends PrecedenceError {
-  constructor (id) {
-    super('CORE_3', 404, `Chain "${id}" not found`, { id })
-  }
-}
-
-class RecordNotFoundError extends PrecedenceError {
-  constructor (id) {
-    super('CORE_4', 404, `Record "${id}" not found`, { id })
+    super('CORE.Conflict', 'Conflict')
   }
 }
 
 class RecordAlreadyExistsError extends PrecedenceError {
   constructor (id) {
-    super('CORE_5', 409, `Record "${id}" already exists`, { id })
+    super('CORE.RecordAlreadyExistsError', `Record "${id}" already exists`, id)
+  }
+}
+
+class RecordNotFoundError extends PrecedenceError {
+  constructor (id) {
+    super('CORE.RecordNotFoundError', `Record "${id}" not found`, id)
   }
 }
 
 module.exports = {
   PrecedenceError,
-  ConcurrentError,
-  BlockNotFoundError,
-  ChainNotFoundError,
-  RecordNotFoundError,
-  RecordAlreadyExistsError
+  ConflictError,
+  RecordAlreadyExistsError,
+  RecordNotFoundError
 }

@@ -1,6 +1,6 @@
 const util = require('util')
 
-const { RecordAlreadyExistsError, RecordNotFoundError, ChainNotFoundError } = require('./errors')
+const { RecordAlreadyExistsError, RecordNotFoundError } = require('./errors')
 const { random, sortObject, sha256 } = require('./utils')
 const { getNewRedisClient, getTime, execOperations } = require('./redis')
 
@@ -10,23 +10,15 @@ const recordInfoKeyFormat = 'record.info.%s'
 const recordDataKeyFormat = 'record.data.%s'
 
 const recordResponse = (recordInfo, data) => {
-  return Object.assign({}, recordInfo, {
-    data: data && data.toString('base64')
-  })
-}
-
-const getRecordInfoOrNull = async (redis, id) => {
-  const result = await redis.get(util.format(recordInfoKeyFormat, id))
-  return result && JSON.parse(result)
+  const result = Object.assign({}, recordInfo)
+  delete result.data
+  result.data = data ? data.toString('base64') : undefined
+  return result
 }
 
 const getRecordInfo = async (redis, id) => {
-  const result = await getRecordInfoOrNull(redis, id)
-  if (result) {
-    return result
-  } else {
-    throw new RecordNotFoundError(id)
-  }
+  const result = await redis.get(util.format(recordInfoKeyFormat, id))
+  return result && JSON.parse(result)
 }
 
 const getSetRecordInfoOperation = (recordInfo) => {
@@ -35,25 +27,14 @@ const getSetRecordInfoOperation = (recordInfo) => {
 
 const getRecord = async (redis, id) => {
   const recordInfo = await getRecordInfo(redis, id)
-  let data
-  if (recordInfo.deleted === true) {
-    delete recordInfo.chains
-  } else {
-    data = await redis.getBuffer(util.format(recordDataKeyFormat, recordInfo.provable.id)) || undefined
+  if (!recordInfo) {
+    return null
   }
+  const data = recordInfo.data !== undefined && await redis.getBuffer(util.format(recordDataKeyFormat, recordInfo.provable.id))
   return recordResponse(recordInfo, data)
 }
 
-const getLastRecordIdOrNull = (redis, chain) => redis.get(util.format(chainKeyFormat, sha256(chain)))
-
-const getLastRecordId = async (redis, chain) => {
-  const id = await getLastRecordIdOrNull(redis, chain)
-  if (id) {
-    return id
-  } else {
-    throw new ChainNotFoundError(chain)
-  }
-}
+const getLastRecordId = (redis, chain) => redis.get(util.format(chainKeyFormat, chain))
 
 const createRecords = async (redis, records, preExec) => {
   redis = getNewRedisClient(redis)
@@ -78,13 +59,14 @@ const createRecords = async (redis, records, preExec) => {
       }
       if (record.data) {
         operations.push(['set', util.format(recordDataKeyFormat, id), record.data])
+        recordInfo.data = record.data.length
       }
       recordInfo.provable.data = sha256(`${seed} ${record.hash}`)
       const chains = {}
       const previous = {}
       for (const chain of record.chains) {
         await redis.watch([chain])
-        const last = local.chain[chain] ? local.chain[chain].id : await getLastRecordIdOrNull(redis, chain)
+        const last = local.chain[chain] ? local.chain[chain].id : await getLastRecordId(redis, chain)
         local.chain[chain] = id
         chains[chain] = last
         if (last) {
@@ -97,7 +79,7 @@ const createRecords = async (redis, records, preExec) => {
         return r
       }, {})
       for (const id of record.previous) {
-        if (!local.record[id] && (await getRecordInfoOrNull(redis, id)) === null) {
+        if (!local.record[id] && (await getRecordInfo(redis, id)) === null) {
           throw new RecordNotFoundError(id)
         }
         local.record[id] = true
@@ -118,7 +100,7 @@ const createRecords = async (redis, records, preExec) => {
       results.push(result)
     }
     Object.entries(local.chain).forEach(([chain, id]) => {
-      operations.push(['set', util.format(chainKeyFormat, sha256(chain)), id])
+      operations.push(['set', util.format(chainKeyFormat, chain), id])
     })
     if (preExec) {
       await preExec(redis, operations)
@@ -130,41 +112,54 @@ const createRecords = async (redis, records, preExec) => {
   }
 }
 
-const deleteRecord = async (redis, id, recursive = false) => {
+const deleteRecord = async (redis, id) => {
   const record = await getRecordInfo(redis, id)
-  const result = {
-    deleted: record.deleted ? 0 : 1
+  if (!record || record.data === undefined) {
+    return null
   }
-  delete record.chains
-  record.deleted = true
+  const result = record.data
+  delete record.data
   await execOperations(redis, [
     getSetRecordInfoOperation(record),
-    ['del', util.format(recordDataKeyFormat, record.provable.id)]
+    ['del', util.format(recordDataKeyFormat, id)]
   ])
-  if (recursive !== true) {
-    return result
-  }
-  let todo = record.provable.previous
-  while (todo.length > 0) {
-    for (const id of todo.splice(0, todo.length)) {
-      const record = await getRecordInfo(redis, id)
-      result.deleted += record.deleted ? 0 : 1
-      delete record.chains
-      record.deleted = true
-      await execOperations(redis, [
-        getSetRecordInfoOperation(record),
-        ['del', util.format(recordDataKeyFormat, id)]
-      ])
-      todo = todo.concat(record.provable.previous)
-    }
-  }
   return result
 }
 
-const deleteChain = async (redis, name) => {
-  const result = await deleteRecord(redis, await getLastRecordId(redis, name), true)
-  await redis.del(util.format(chainKeyFormat, sha256(name)))
-  return result
+const deleteChain = async (redis, chain, data = false) => {
+  const id = await getLastRecordId(redis, chain)
+  if (!id) {
+    return null
+  }
+  const results = {
+    records: 0,
+    data: data ? {
+      records: 0,
+      bytes: 0
+    } : undefined
+  }
+  const operations = []
+  let todo = [id]
+  while (todo.length > 0) {
+    for (const id of todo.splice(0, todo.length)) {
+      const record = await getRecordInfo(redis, id)
+      results.records++
+      if (data && record.data >= 0) {
+        results.data.records++
+        results.data.bytes += record.data
+        delete record.data
+        operations.push(['del', util.format(recordDataKeyFormat, id)])
+      }
+      if (record.chains[chain]) {
+        todo.push(record.chains[chain])
+      }
+      delete record.chains[chain]
+      operations.push(getSetRecordInfoOperation(record))
+    }
+  }
+  operations.push(['del', util.format(chainKeyFormat, chain)])
+  await execOperations(redis, operations)
+  return results
 }
 
 module.exports = {

@@ -13,9 +13,9 @@
 - stream processing
 
 By connecting your data source to **_precedence_** you automatically get:
-- proof-of-existence on every data connected
-- proof-of-ownership compliant with your PKI
-- automatic versioning system for every pieces of information
+- proof-of-existence on every data connected;
+- proof-of-ownership compliant with your PKI;
+- automatic versioning system for every pieces of information.
 
 All these features allow you bring secure blockchain-powered traceability features to your legacy information system.
 
@@ -101,19 +101,19 @@ You will find below a response example.
 
 ```json
 {
-  "took": 22,
+  "took": 19,
   "status": 201,
   "data": {
     "provable": {
-      "seed": "cb23366eb69534a35970a67e9ff4d7f4332c4d9a198765d891db536d32b035ca",
-      "id": "9acd7647acbacc502ed209ccb8233126aebfd4bb1469fd8a306d389eee47a1c6",
-      "data": "5a7a479ff73f301dd10f2f71153b0fe14ff2e171d1601ea0ff57fb275b789699",
+      "seed": "84e5d76285dc059db5f137deb153c201be297e0feec224a514700c167e72bf80",
+      "id": "11ea0e7403e7d61f98c553816de52965d27423c7c1f06ddae62ca8e938a98403",
+      "data": "4a2fddacf919bc64353ea8bfefb350aa2bdae0e70c96185f0f4382e17b99efcd",
       "chains": {},
       "previous": []
     },
-    "seed": "2937bd4311059780ebcde82f9647d2280ba28fb2346f931466b96c59ddd9fc86",
-    "hash": "29309b03a6d7332af2524f5ae33029d253cb9599832cc7db21fb7e4a5dcd538e",
-    "timestamp": 1557236922817,
+    "seed": "910fa8789d5071fa878aa4116c843ba501251d54cc231363f5cad3a6ad1b47a1",
+    "hash": "e241bd9c1c963ec1cc10696bde6ea7ccc9d63d71bc5e45c7988b2e6a24af31ed",
+    "timestamp": 1557739758241,
     "chains": {}
   }
 }
@@ -137,11 +137,11 @@ For sure you need some explanation about the returned JSON response:
 We can check that:
 - the fingerprint of `seed` value is equal to `provable.seed` value:
 ```bash
-echo -n '2937bd4311059780ebcde82f9647d2280ba28fb2346f931466b96c59ddd9fc86' | sha256sum
+echo -n '910fa8789d5071fa878aa4116c843ba501251d54cc231363f5cad3a6ad1b47a1' | sha256sum
 ```
 - the obfuscated fingerprint of provided data is equal to `provable.data` value:
 ```bash
-echo -n "2937bd4311059780ebcde82f9647d2280ba28fb2346f931466b96c59ddd9fc86 $(echo -n "value 1" | sha256sum | cut -d' ' -f1)" | sha256sum
+echo -n "910fa8789d5071fa878aa4116c843ba501251d54cc231363f5cad3a6ad1b47a1 $(echo -n 'value 1' | sha256sum | cut -d' ' -f1)" | sha256sum
 ```
 
 ---
@@ -154,19 +154,19 @@ curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=tru
 
 ```json
 {
-  "took": 19,
+  "took": 10,
   "status": 201,
   "data": {
     "provable": {
-      "seed": "601da6b56ffef122acd0679e179e0f5c064088591e93425e52a9ac4c6bdb0789",
-      "id": "5fc8b7e5eafd00c46a3574fd0c448c763472411cdb15dc2e2a0564ce2c81484f",
-      "data": "4f45c40660caa319b60edf969ec0f26ca2906e406400b19148df5481d883c2fd",
+      "seed": "e39974df1f1d296bcdf50cf7078089c075b7d9256d4068660ca4262b9169cf42",
+      "id": "cd44be31d052390b0cef3f4ff24fdbc0585ee35b02f69d70e967bd9055d22964",
+      "data": "95a1f34406f32dc2da77615f4f530591570a1e8e1e160f4b71e0a47d17e10472",
       "chains": {},
       "previous": []
     },
-    "seed": "366b7278ab5fa530450c08bba0877bbedc22d89de751306398971c53f389d92b",
-    "hash": "6913f7c3d4edd72d929931b66e36b76761a06407ee6284985cdb529769f13155",
-    "timestamp": 1557236970327,
+    "seed": "5446786b77d4fd1f4ff9c5cee0578c3f17b52fbb3269bb87b38ac77bc869c14d",
+    "hash": "0c7fb244324216e46c98867c1a2335d7cf1dd2af9ce74971e9f1c23b069f47ff",
+    "timestamp": 1557739790228,
     "chains": {},
     "data": "dmFsdWUgMg=="
   }
@@ -186,24 +186,25 @@ echo "dmFsdWUgMg==" | base64 --decode
 Let's create the same data again.
 
 ```bash
-curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=true" -d "value 2"
+curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=true&store=true" -d "value 2"
 ```
 ```json
 {
-  "took": 12,
+  "took": 9,
   "status": 201,
   "data": {
     "provable": {
-      "seed": "46d78ef09daba18a4b8a66d697645e187574ef6f4ee80a6bdf142a4bcabb4880",
-      "id": "d88bf73008c876d2679457d3eac57ef9fdf92373a838b5ed6f527916c441f4e2",
-      "data": "40e2c3dab283725e7b3ee6eea45122a176a95263e4feee65bf21ac9c0f499781",
+      "seed": "1cdbe2809ccc357c0fa92f0c0e265260a098ef565da571a28d11229b7162f0a2",
+      "id": "5490e919038d04d6d4421351c249b3844f94016fc99582d1fee1a7df22054a96",
+      "data": "a4bbb8883b5716987f244c47fd298b399fa64704a17b9da06bdfe01393617124",
       "chains": {},
       "previous": []
     },
-    "seed": "d5db4dd8edf11c4d61320565ddcdab5fb49344377548c16c715fbeebb00afcd2",
-    "hash": "f4fd3fda5e6da3b54faa64016d04ed99c493e6d9e479a643a7d53cf1df73f06a",
-    "timestamp": 1557236992740,
-    "chains": {}
+    "seed": "76df946d0a224e76bd5ac97d063de1cdd1f0bc818b952f7eba0e30f8bc29a426",
+    "hash": "d80b13d447bb0ddb752d739a3767afcca5a98075ee1031cec470c4a72872b14d",
+    "timestamp": 1557739804129,
+    "chains": {},
+    "data": "dmFsdWUgMg=="
   }
 }
 ```
@@ -220,19 +221,19 @@ curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=tru
 
 ```json
 {
-  "took": 19,
+  "took": 10,
   "status": 201,
   "data": {
     "provable": {
-      "seed": "8ac610b320a560c51aeb6292b8a4bd009fafc8cdf45395473cb414b1d93ef8f4",
-      "id": "b662ad6e141142ef95c850d4990f9ebcf0ca9a2b5b79bf8938018a17aa1b90a6",
-      "data": "a4dc8daac7bbc06a43f40b3353b064dc468348ad8fa5d2056c26fb839206e1a3",
+      "seed": "5489f4c8273c6990955c7e8ff446f95fbc637697c60ba31f9375bfbbfe2b19c8",
+      "id": "b61a540882f05a8390b531539430b68a4a27dc46c4917595039047255563b463",
+      "data": "b878af47c87c29c9f6ef5642907f3113e381c3facc13f1ea0e2efcdbe750ae81",
       "chains": {},
       "previous": []
     },
-    "seed": "f810993cc9d39979d76b8827a4d644cdf75596e6cad5edb111c0b97f023ba20f",
-    "hash": "f01cc59f0710999b7fee1762597acf68206dd3cceea821cd820f7ff32ccc293c",
-    "timestamp": 1557237008427,
+    "seed": "6d1820b9c5f74e530e3ee599b24a17c97c66909979569890170a601c710598dc",
+    "hash": "54bbdf7cf25da20e9655949f67bf6926ebe4250da4e03cb784b61bcc9a662ac6",
+    "timestamp": 1557739817266,
     "chains": {}
   }
 }
@@ -245,25 +246,26 @@ By doing so the received data fingerprint is compared to the provided one to mak
 You can specify an identifier for your record. This identifier must be unique and so can not be used to create multiple records.
 
 ```bash
-curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=true&id=E518B4BB-2668-4ED7-B9E3-E63803BCAC93" -d "value 5"
+curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=true&store=true&id=E518B4BB-2668-4ED7-B9E3-E63803BCAC93" -d "value 5"
 ```
 
 ```json
 {
-  "took": 20,
+  "took": 11,
   "status": 201,
   "data": {
     "provable": {
-      "seed": "6a707b19a5ab1e7d4bca514ea568877b594e5c5d92cf11a250a8da1823625288",
+      "seed": "6078cc58516bd35e7c09e342ddf7aa711b7331f248ec991caeefc126072267a2",
       "id": "3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4",
-      "data": "469e3cabc2b9c89d460039995f5d59aa9eda2ab499fe20cca53db54649dd38e1",
+      "data": "5a8261904481a3183a3bd51e09463769848c9249354d7ae21fad0ee0d93773d6",
       "chains": {},
       "previous": []
     },
-    "seed": "2bbe2df99d414b32efe7dec1d30b1663e1622c7e652113817a0ed37656f54330",
-    "hash": "169a87cf819b379f791b7bba5898974611e0f44348315f86df4412c227dfddcf",
-    "timestamp": 155716018319,
-    "chains": {}
+    "seed": "a82d2f7a9488381d2756d10467d824eb2b5f7237e8f5cfd789efd7f3df41b9c7",
+    "hash": "495486fc1d7a2f3d46107d364b454086dca2bea6a4ac8dc17767d6526bad7882",
+    "timestamp": 1557739832494,
+    "chains": {},
+    "data": "dmFsdWUgNQ=="
   }
 }
 ```
@@ -273,18 +275,16 @@ The returned identifier is the fingerprint of the identifier you provided.
 If you try to create a new record with the same identifier you will get an error.
 
 ```bash
-curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=true&id=E518B4BB-2668-4ED7-B9E3-E63803BCAC93" -d "value 5.1"
+curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=true&id=E518B4BB-2668-4ED7-B9E3-E63803BCAC93" -d "value 6"
 ```
 
 ```json
 {
-  "took": 11,
+  "took": 8,
   "status": 409,
-  "error": 1006,
+  "error": 3,
   "message": "Record \"3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4\" already exists",
-  "data": {
-    "id": "3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4"
-  }
+  "data": "3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4"
 }
 ```
 
@@ -298,19 +298,19 @@ curl -XGET "$api/records/3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745
 
 ```json
 {
-  "took": 8,
+  "took": 6,
   "status": 200,
   "data": {
     "provable": {
-      "seed": "b3398bed0c074f5ccaee29fe557be2c5c90834316396f8955a93939f63c0e1bb",
+      "seed": "6078cc58516bd35e7c09e342ddf7aa711b7331f248ec991caeefc126072267a2",
       "id": "3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4",
-      "data": "c41b74145fc03ef6fdb082e44af2df97aaa841d872551c44b014d34b0c2430b5",
+      "data": "5a8261904481a3183a3bd51e09463769848c9249354d7ae21fad0ee0d93773d6",
       "chains": {},
       "previous": []
     },
-    "seed": "eed74bc221acad82020ed0ca37329b8cd73a7ecd155389b222987ba0170ae356",
-    "hash": "7c999a9e5217862dc8e075f0f68e8caadf210ec12aec18805c267b5e669d1d36",
-    "timestamp": 1557237030800,
+    "seed": "a82d2f7a9488381d2756d10467d824eb2b5f7237e8f5cfd789efd7f3df41b9c7",
+    "hash": "495486fc1d7a2f3d46107d364b454086dca2bea6a4ac8dc17767d6526bad7882",
+    "timestamp": 1557739832494,
     "chains": {},
     "data": "dmFsdWUgNQ==",
     "block": null
@@ -326,12 +326,12 @@ curl -XPOST "$api/blocks?pretty=true"
 
 ```json
 {
-  "took": 109,
+  "took": 75,
   "status": 201,
   "data": {
-    "root": "3afdfa8d8e6749d407c144cfc67b1562411a25c493738772c7a01e418bbc0a2f",
+    "root": "fc0d9bb42ac879053284e043527544582eb54845421043a285f8045835e9edf2",
     "index": 1,
-    "timestamp": "1557237311683",
+    "timestamp": "1557739890940",
     "count": 5,
     "previous": null
   }
@@ -346,27 +346,27 @@ curl -XGET "$api/records/3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745
 
 ```json
 {
-  "took": 29,
+  "took": 17,
   "status": 200,
   "data": {
     "provable": {
-      "seed": "b3398bed0c074f5ccaee29fe557be2c5c90834316396f8955a93939f63c0e1bb",
+      "seed": "6078cc58516bd35e7c09e342ddf7aa711b7331f248ec991caeefc126072267a2",
       "id": "3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4",
-      "data": "c41b74145fc03ef6fdb082e44af2df97aaa841d872551c44b014d34b0c2430b5",
+      "data": "5a8261904481a3183a3bd51e09463769848c9249354d7ae21fad0ee0d93773d6",
       "chains": {},
       "previous": []
     },
-    "seed": "eed74bc221acad82020ed0ca37329b8cd73a7ecd155389b222987ba0170ae356",
-    "hash": "7c999a9e5217862dc8e075f0f68e8caadf210ec12aec18805c267b5e669d1d36",
-    "timestamp": 1557237030800,
+    "seed": "a82d2f7a9488381d2756d10467d824eb2b5f7237e8f5cfd789efd7f3df41b9c7",
+    "hash": "495486fc1d7a2f3d46107d364b454086dca2bea6a4ac8dc17767d6526bad7882",
+    "timestamp": 1557739832494,
     "chains": {},
     "data": "dmFsdWUgNQ==",
     "block": {
       "index": 1,
       "proof": [
-        "f851808080a04c8542aa07c00cfac513287a592a798718feea12cff116f5b0c2cb9581206e6c8080a01b4cbf3f415cdeda70d2a8b40baceaef365b42f5e6285ad3967a41d05695c97e80808080808080808080",
-        "f871808080a02abdb50a1c3a89c0a01062d1c087151a07be1677432d7c63bd3475793d7a04dd80a0a96fc885c67520d2c9bb96edd084eb4456941f1247fc4402e38cb4199a63e148808080a0bf4119f0b7c0e248c27407d09798ee2aaa4d11b5b4cf07187fa2e705b9ddfe9980808080808080",
-        "f884b84020613331643536373437373835666166653733626336373435613164323163366238633338643134623735373366613366653330373435616465643165326334b84037633939396139653532313738363264633865303735663066363865386361616466323130656331326165633138383035633236376235653636396431643336"
+        "f851808080a05fa17f55565a57f4f7f9e19ffb0facb0c43637a26e8b43843a0b4e8760200ac18080a04ca2674d5c5995bd09252ca03372cfb823d49e0b42578ac7887d713482f3febc80808080808080808080",
+        "f87180a095da8f235adcb76716d5186a27fc613097ca0b8d393efb87713fe6f470694b0b80a0325a677abf0c208b65a2004a49a78d8094e80e75bfcf3920db1d7db31713eea980a023f364961996b982f3a9abd981b26119b01a3b4b0754f0b6393c155c7031c0828080808080808080808080",
+        "f884b84020613331643536373437373835666166653733626336373435613164323163366238633338643134623735373366613366653330373435616465643165326334b84034393534383666633164376132663364343631303764333634623435343038366463613262656136613461633864633137373637643635323662616437383832"
       ]
     }
   }
@@ -378,30 +378,30 @@ The returned document contains information related to the block the record belon
 - `proof` is an array that contains the agnostic proof-of-existence of this record in the block.
 
 How to prove:
-- the fingerprint of `provable` is equal to the `hash` value: `7c999a9e5217862dc8e075f0f68e8caadf210ec12aec18805c267b5e669d1d36`
+- the fingerprint of `provable` is equal to the `hash` value: `495486fc1d7a2f3d46107d364b454086dca2bea6a4ac8dc17767d6526bad7882`
 ```bash
-echo -n '{"seed":"b3398bed0c074f5ccaee29fe557be2c5c90834316396f8955a93939f63c0e1bb","id":"3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4","data":"c41b74145fc03ef6fdb082e44af2df97aaa841d872551c44b014d34b0c2430b5","chains":{},"previous":[]}' | sha256sum | cut -d' ' -f1
+echo -n '{"seed":"6078cc58516bd35e7c09e342ddf7aa711b7331f248ec991caeefc126072267a2","id":"3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4","data":"5a8261904481a3183a3bd51e09463769848c9249354d7ae21fad0ee0d93773d6","chains":{},"previous":[]}' | sha256sum | cut -d' ' -f1
 ```
 - `hash` is part of `block.proof[2]`
 ```bash
-echo -n "7c999a9e5217862dc8e075f0f68e8caadf210ec12aec18805c267b5e669d1d36" | xxd -p | tr -d '\n'
+echo -n "495486fc1d7a2f3d46107d364b454086dca2bea6a4ac8dc17767d6526bad7882" | xxd -p | tr -d '\n'
 ```
 - `block.proof[2]` is part of `block.proof[1]`
 ```bash
-echo -n "f884b84020613331643536373437373835666166653733626336373435613164323163366238633338643134623735373366613366653330373435616465643165326334b84037633939396139653532313738363264633865303735663066363865386361616466323130656331326165633138383035633236376235653636396431643336" | xxd -r -p | keccak-256sum | cut -d' ' -f1 | tr '[:upper:]' '[:lower:]'
+echo -n "f884b84020613331643536373437373835666166653733626336373435613164323163366238633338643134623735373366613366653330373435616465643165326334b84034393534383666633164376132663364343631303764333634623435343038366463613262656136613461633864633137373637643635323662616437383832" | xxd -r -p | keccak-256sum | cut -d' ' -f1 | tr '[:upper:]' '[:lower:]'
 ```
 - `block.proof[1]` is part of `block.proof[0]`
 ```bash
-echo -n "f871808080a02abdb50a1c3a89c0a01062d1c087151a07be1677432d7c63bd3475793d7a04dd80a0a96fc885c67520d2c9bb96edd084eb4456941f1247fc4402e38cb4199a63e148808080a0bf4119f0b7c0e248c27407d09798ee2aaa4d11b5b4cf07187fa2e705b9ddfe9980808080808080" | xxd -r -p | keccak-256sum | cut -d' ' -f1 | tr '[:upper:]' '[:lower:]'
+echo -n "f87180a095da8f235adcb76716d5186a27fc613097ca0b8d393efb87713fe6f470694b0b80a0325a677abf0c208b65a2004a49a78d8094e80e75bfcf3920db1d7db31713eea980a023f364961996b982f3a9abd981b26119b01a3b4b0754f0b6393c155c7031c0828080808080808080808080" | xxd -r -p | keccak-256sum | cut -d' ' -f1 | tr '[:upper:]' '[:lower:]'
 ```
-- `block.proof[0]` is the `root` value of the block number 1 : `3afdfa8d8e6749d407c144cfc67b1562411a25c493738772c7a01e418bbc0a2f`
+- `block.proof[0]` is the `root` value of the block number 1 : `fc0d9bb42ac879053284e043527544582eb54845421043a285f8045835e9edf2`
 ```bash
-echo -n "f851808080a04c8542aa07c00cfac513287a592a798718feea12cff116f5b0c2cb9581206e6c8080a01b4cbf3f415cdeda70d2a8b40baceaef365b42f5e6285ad3967a41d05695c97e80808080808080808080" | xxd -r -p | keccak-256sum | cut -d' ' -f1 | tr '[:upper:]' '[:lower:]'
+echo -n "f851808080a05fa17f55565a57f4f7f9e19ffb0facb0c43637a26e8b43843a0b4e8760200ac18080a04ca2674d5c5995bd09252ca03372cfb823d49e0b42578ac7887d713482f3febc80808080808080808080" | xxd -r -p | keccak-256sum | cut -d' ' -f1 | tr '[:upper:]' '[:lower:]'
 ```
 
 ---
 
-You can delete the data that is stored in the record. The record itself can not be deleted because it would cause chain inconsitency.
+You can delete the data that is stored in the record. The record itself can not be deleted because it would cause chain inconsistency.
 
 ```bash
 curl -XDELETE "$api/records/3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4?pretty=true"
@@ -409,15 +409,13 @@ curl -XDELETE "$api/records/3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30
 
 ```json
 {
-  "took": 6,
+  "took": 4,
   "status": 200,
-  "data": {
-    "deleted": 1
-  }
+  "data": 7
 }
 ```
 
-The data record has been deleted, let's retrieve it again.
+The record data has been deleted releasing `7` bytes, let's retrieve this record again.
 
 ```bash
 curl -XGET "$api/records/3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4?pretty=true"
@@ -425,85 +423,66 @@ curl -XGET "$api/records/3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745
 
 ```json
 {
-  "took": 23,
+  "took": 17,
   "status": 200,
   "data": {
     "provable": {
-      "seed": "b3398bed0c074f5ccaee29fe557be2c5c90834316396f8955a93939f63c0e1bb",
+      "seed": "6078cc58516bd35e7c09e342ddf7aa711b7331f248ec991caeefc126072267a2",
       "id": "3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4",
-      "data": "c41b74145fc03ef6fdb082e44af2df97aaa841d872551c44b014d34b0c2430b5",
+      "data": "5a8261904481a3183a3bd51e09463769848c9249354d7ae21fad0ee0d93773d6",
       "chains": {},
       "previous": []
     },
-    "seed": "eed74bc221acad82020ed0ca37329b8cd73a7ecd155389b222987ba0170ae356",
-    "hash": "7c999a9e5217862dc8e075f0f68e8caadf210ec12aec18805c267b5e669d1d36",
-    "timestamp": 1557237030800,
-    "deleted": true,
+    "seed": "a82d2f7a9488381d2756d10467d824eb2b5f7237e8f5cfd789efd7f3df41b9c7",
+    "hash": "495486fc1d7a2f3d46107d364b454086dca2bea6a4ac8dc17767d6526bad7882",
+    "timestamp": 1557739832494,
+    "chains": {},
     "block": {
       "index": 1,
       "proof": [
-        "f851808080a04c8542aa07c00cfac513287a592a798718feea12cff116f5b0c2cb9581206e6c8080a01b4cbf3f415cdeda70d2a8b40baceaef365b42f5e6285ad3967a41d05695c97e80808080808080808080",
-        "f871808080a02abdb50a1c3a89c0a01062d1c087151a07be1677432d7c63bd3475793d7a04dd80a0a96fc885c67520d2c9bb96edd084eb4456941f1247fc4402e38cb4199a63e148808080a0bf4119f0b7c0e248c27407d09798ee2aaa4d11b5b4cf07187fa2e705b9ddfe9980808080808080",
-        "f884b84020613331643536373437373835666166653733626336373435613164323163366238633338643134623735373366613366653330373435616465643165326334b84037633939396139653532313738363264633865303735663066363865386361616466323130656331326165633138383035633236376235653636396431643336"
+        "f851808080a05fa17f55565a57f4f7f9e19ffb0facb0c43637a26e8b43843a0b4e8760200ac18080a04ca2674d5c5995bd09252ca03372cfb823d49e0b42578ac7887d713482f3febc80808080808080808080",
+        "f87180a095da8f235adcb76716d5186a27fc613097ca0b8d393efb87713fe6f470694b0b80a0325a677abf0c208b65a2004a49a78d8094e80e75bfcf3920db1d7db31713eea980a023f364961996b982f3a9abd981b26119b01a3b4b0754f0b6393c155c7031c0828080808080808080808080",
+        "f884b84020613331643536373437373835666166653733626336373435613164323163366238633338643134623735373366613366653330373435616465643165326334b84034393534383666633164376132663364343631303764333634623435343038366463613262656136613461633864633137373637643635323662616437383832"
       ]
     }
   }
 }
 ```
 
-The original `data` and `chains` fields have been removed and a new boolean field `deleted` has ben added. The record can still be proved to exist but the data has been removed from **_precedence_**. If you kept it somewhere then the proof is still valid.
+The original `data` value has been removed (GDPR compliant).
 
 ---
 
 To create a record as a new state of an existing record we should use the `previous` parameter. It allows you to link you records with each other.
 
 ```bash
-curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=true&id=61E51581-7763-4486-BF04-35045DC7A0D3&previous=3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4" -d "value 6"
+curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=true&id=61E51581-7763-4486-BF04-35045DC7A0D3&store=true&previous=3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4" -d "value 6"
 ```
 
 ```json
 {
-  "took": 42,
+  "took": 12,
   "status": 201,
   "data": {
     "provable": {
-      "seed": "395ae1c64ceb415ec5de64c86af688a1ab179ea2cb79b3558612822eb17234ba",
+      "seed": "9f3f00d57b698be1492c9fd37ee208e3cc2e351ce54babebbb77a2c92e457f23",
       "id": "75bdb5a188a281c9576331b5573d5be50f7802d92cc591d9dbbbfbcb7ee42de6",
-      "data": "d7dc67ff6ece52421cf64bb866359b7d2d9a1bc9642dc6c3fcf821877433c34a",
+      "data": "7c6302418c02c22807340668866e006a001e69c0095d9ca63c973723d7973733",
       "chains": {},
       "previous": [
         "3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4"
       ]
     },
-    "seed": "37293d4e13c9272609a6389c7d2cce8077bb2d50d2d04aa6700397527e024f68",
-    "hash": "c8b24b6918bb39752f0152586fb56f214d94763c3d7491369ced0c333b38b2e4",
-    "timestamp": 1557237434461,
-    "chains": {}
+    "seed": "14c516d7e7f18b969624caf0186a5c4e9607160cfa0d979c8268e470e817dd9c",
+    "hash": "03267f42f7ceb369ab1c976c0ef2e005032e1162634f484440de9fa90622b555",
+    "timestamp": 1557740304324,
+    "chains": {},
+    "data": "dmFsdWUgNg=="
   }
 }
 ```
 
-The `previous` field contains the parameter you provided. This parameter must be the identifier that was returned at creation time, you can not use your own identifier to link your records. If you want to link your record based on a label that you control, use the chain parameter (this is explain in the chain section).
-
----
-
-You can delete a record data and all the data of the record specified in the previous field transitively by running the following command
-
-```bash
-curl -XDELETE "$api/records/75bdb5a188a281c9576331b5573d5be50f7802d92cc591d9dbbbfbcb7ee42de6?pretty=true&previous=true"
-```
-
-```json
-{
-  "took": 6,
-  "status": 200,
-  "data": {
-    "deleted": 1
-  }
-}
-```
-
-Only one record data was deleted because the record identified by `3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4` was already deleted.
+The `previous` field contains the parameter you provided. This parameter must be the identifier that was returned at creation time, you can not use your own identifier to link your records. If you want to link your record based on a label that you control, use the chain parameter (this is explain in the [chain](#chain-api-calls) section).
 
 ## Chain API calls
 
@@ -517,21 +496,21 @@ curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=tru
 
 ```json
 {
-  "took": 16,
+  "took": 12,
   "status": 201,
   "data": {
     "provable": {
-      "seed": "5d610c4816f178b96efa7336a19359e6d9061f9b1e631e17a25fff400d697e51",
+      "seed": "18bbdfc09e657267356f0ee4036d4fd4f006533099260e43dce54b781c52ef8c",
       "id": "893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951",
-      "data": "8d25b3ecfb21576144e5efea4613bf71e482a629814ac7ae265132826b98d775",
+      "data": "ae1989f64b112e1ef1957f100d3eff2bf31b64ab3af697e6613bd15e881f2dea",
       "chains": {
-        "3f483678ddff7924a539fbbe49f412ecd216ac5d21a6ce179cad2b7bf3609ca1": null
+        "726dba87c88e5da43a421083b2e5e7ce3538c948dede6bf2473edb16a8eebd7e": null
       },
       "previous": []
     },
-    "seed": "47cb4bf459678b34a7171c843cea95c00fd05a009df25c9dda83f2c54fe73166",
-    "hash": "6fde8eb6089d63ac4fa9a8eae5bdd07dfbb28da4cd8c7a64ec630247a28a84db",
-    "timestamp": 1557237560829,
+    "seed": "5b9e6712e266dbf743b7d9618254f506e907f97086e506beef60a7db0113de5e",
+    "hash": "32d269bc94ff3004b7e84188e4f0d24689ba83f8aab0bada8344d886da58b845",
+    "timestamp": 1557740319809,
     "chains": {
       "chain1": null
     }
@@ -544,43 +523,44 @@ The field `chains` contains information about the chain state at insertion time.
 Let's insert a second record using this `chain1` label.
 
 ```bash
-curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=true&id=2B6C83EF-474D-4A15-B1D5-A1EC7E8226CF&chain=chain1" -d "value 8"
+curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=true&id=2B6C83EF-474D-4A15-B1D5-A1EC7E8226CF&chain=chain1&store=true" -d "value 8"
 ```
 
 ```json
 {
-  "took": 14,
+  "took": 11,
   "status": 201,
   "data": {
     "provable": {
-      "seed": "6a35f4e3d8091af3d2b5fa286d379cd6397e202a4119b0555afe1719b2c69242",
+      "seed": "64ce971e6247490fc2e76c81d675aa5a0118355c5d96badee61e625a97445425",
       "id": "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
-      "data": "55cc44d22fa2d0bdb49357d4eb022352bf537d20e48d3cb46651149038918703",
+      "data": "57ec251438705ace6503fcb03db1ace6ff3f9c9090066f86fe9c45e08094d5be",
       "chains": {
-        "221b5f0be0cff6aee7dfd7ca6fba4362960b69df6391c606793e6a195f3efe46": "893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951"
+        "ac86e93bc0e055875674a46a130d86599a5a7557b069943b15cc79e22f1c714a": "893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951"
       },
       "previous": [
         "893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951"
       ]
     },
-    "seed": "ae77537dd7cb382e9b18fb26dd6a76b793ad6892f446d74543e1a29d81ff377b",
-    "hash": "bfb290a0029f617aef2581127a1287dfa25ab571bb590e75097bf66c3f1426b3",
-    "timestamp": 1557237682678,
+    "seed": "f3ef5db6b9ae13684ede7db33222a69f6b5a4fd5f25c1fdc4796263b2c873954",
+    "hash": "20f6bce69d90df65877a703809bc542a07df8917d006fc5103c70b23d8e467fc",
+    "timestamp": 1557740336731,
     "chains": {
       "chain1": "893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951"
-    }
+    },
+    "data": "dmFsdWUgOA=="
   }
 }
 ```
 
-The field `chains` contains the key `chain1` whose value is the record identifier of the previously inserted record. The record has been appended at the end of the chain and the label `chain1` now refers to the newly inserted record. This information is provable because it is part of the record definition. The key stored in `provable.chains` has been obfuscated to avoid any data leak and for GDPR compliancy (these fields can't be removed except by deleting the entire chain).
+The field `chains` contains the key `chain1` whose value is the record identifier of the previously inserted record. The record has been appended at the end of the chain and the label `chain1` now refers to the newly inserted record. This information is provable because it is part of the record definition. The key stored in `provable.chains` has been obfuscated to avoid any data leak (GDPR compliant). `chains` can be removed by deleting the entire chain.
 
 We can check that:
-- the obfuscated fingerprint of `chain1` is equal to `221b5f0be0cff6aee7dfd7ca6fba4362960b69df6391c606793e6a195f3efe46`:
+- the obfuscated fingerprint of `chain1` is equal to `ac86e93bc0e055875674a46a130d86599a5a7557b069943b15cc79e22f1c714a`:
 ```bash
-echo -n "ae77537dd7cb382e9b18fb26dd6a76b793ad6892f446d74543e1a29d81ff377b chain1" | sha256sum
+echo -n "f3ef5db6b9ae13684ede7db33222a69f6b5a4fd5f25c1fdc4796263b2c873954 chain1" | sha256sum
 ```
-- the `chains.chain1` value is equal to the `provable.chains.221b5f0be0cff6aee7dfd7ca6fba4362960b69df6391c606793e6a195f3efe46` value: `893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951`
+- the `chains.chain1` value is equal to the `provable.chains.ac86e93bc0e055875674a46a130d86599a5a7557b069943b15cc79e22f1c714a` value: `893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951`.
 
 ---
 
@@ -592,26 +572,27 @@ curl -XGET "$api/chains/chain1?pretty=true"
 
 ```json
 {
-  "took": 9,
+  "took": 6,
   "status": 200,
   "data": {
     "provable": {
-      "seed": "6a35f4e3d8091af3d2b5fa286d379cd6397e202a4119b0555afe1719b2c69242",
+      "seed": "64ce971e6247490fc2e76c81d675aa5a0118355c5d96badee61e625a97445425",
       "id": "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
-      "data": "55cc44d22fa2d0bdb49357d4eb022352bf537d20e48d3cb46651149038918703",
+      "data": "57ec251438705ace6503fcb03db1ace6ff3f9c9090066f86fe9c45e08094d5be",
       "chains": {
-        "221b5f0be0cff6aee7dfd7ca6fba4362960b69df6391c606793e6a195f3efe46": "893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951"
+        "ac86e93bc0e055875674a46a130d86599a5a7557b069943b15cc79e22f1c714a": "893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951"
       },
       "previous": [
         "893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951"
       ]
     },
-    "seed": "ae77537dd7cb382e9b18fb26dd6a76b793ad6892f446d74543e1a29d81ff377b",
-    "hash": "bfb290a0029f617aef2581127a1287dfa25ab571bb590e75097bf66c3f1426b3",
-    "timestamp": 1557237682678,
+    "seed": "f3ef5db6b9ae13684ede7db33222a69f6b5a4fd5f25c1fdc4796263b2c873954",
+    "hash": "20f6bce69d90df65877a703809bc542a07df8917d006fc5103c70b23d8e467fc",
+    "timestamp": 1557740336731,
     "chains": {
       "chain1": "893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951"
     },
+    "data": "dmFsdWUgOA==",
     "block": null
   }
 }
@@ -622,7 +603,7 @@ curl -XGET "$api/chains/chain1?pretty=true"
 You can insert a record by setting multiple chain names and the previous parameter.
 
 ```bash
-curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=true&chain=chain1&chain=chain2&previous=893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951&previous=44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3" -d "value 9"
+curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=true&chain=chain1&chain=chain2&previous=893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951&previous=75bdb5a188a281c9576331b5573d5be50f7802d92cc591d9dbbbfbcb7ee42de6&store=true" -d "value 9"
 ```
 
 ```json
@@ -631,25 +612,27 @@ curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=tru
   "status": 201,
   "data": {
     "provable": {
-      "seed": "4dfb5cf03372e85d4ddde10a85298b5ce83fad784c0e6d61b5de6c389f7ecd20",
-      "id": "60e8c8b995dc95b79b79d91ea5b8021a2129398020e35954c9857885280c8ab7",
-      "data": "48599967ce226f0e02c7e94d1c7246e0fe4a6114b438281eb48bd39e127dfd87",
+      "seed": "5e7851adf83bff9d7df8dae63817fdd6b14248f0af674afcc1592d34833b9626",
+      "id": "8737811ddbadf63084138e2709ea55ce1f1d0d4f073dcd684abb5b85d3f0303c",
+      "data": "569154c733b68feb07d71e857d9c9a0c582e96456be4fa397019398b419bf59d",
       "chains": {
-        "535ee4028833d39c8c384f4ac0c2ed687cba72b184553b6140c97d96933b5768": "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
-        "11b3b813c32dadd3f012d2549fac3268e8ce757f78472cb69c985fc7719c4c29": null
+        "fdcb09d95628c33eaa505052031ea1edf17a2c6b60b3439bec2c4fab0a807b75": "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
+        "b3e21210fa348ee7e34de2da99efeecd01ca891c361e7464c1dd8f03c519f326": null
       },
       "previous": [
         "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
+        "75bdb5a188a281c9576331b5573d5be50f7802d92cc591d9dbbbfbcb7ee42de6",
         "893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951"
       ]
     },
-    "seed": "fa495de9115c694164a08d56793c96c439cc9f0c23d39ff63289525b02936b04",
-    "hash": "a1dea5920afbbb37f573eb11932f99e53697ffed0085490d3e4f56d0c74a9971",
-    "timestamp": 1557237802673,
+    "seed": "5332abe80b58ed195c4f9fbfe4ea981a6f4f35f3ffb1dd4d5fd864f25b07ad9f",
+    "hash": "b4121b5fd2b6a9a4bce39a9bc79c35d0ead134dce7fb5673f86f7ea140e69372",
+    "timestamp": 1557740415781,
     "chains": {
       "chain1": "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
       "chain2": null
-    }
+    },
+    "data": "dmFsdWUgOQ=="
   }
 }
 ```
@@ -658,7 +641,7 @@ In this case the **_precedence_** server computes at insertion time and in a ato
 
 ---
 
-The previous inserted record is the last records on both `chain1` and `chain2`. Let's try to retrieve the record refered to by each chain label `chain1` and `chain2` to compare the result.
+The previous inserted record is the last records on both `chain1` and `chain2`. Let's try to retrieve the record referred to by each chain label `chain1` and `chain2` to compare the result.
 
 ```bash
 curl -XGET "$api/chains/chain1?pretty=true"
@@ -666,29 +649,31 @@ curl -XGET "$api/chains/chain1?pretty=true"
 
 ```json
 {
-  "took": 10,
+  "took": 5,
   "status": 200,
   "data": {
     "provable": {
-      "seed": "4dfb5cf03372e85d4ddde10a85298b5ce83fad784c0e6d61b5de6c389f7ecd20",
-      "id": "60e8c8b995dc95b79b79d91ea5b8021a2129398020e35954c9857885280c8ab7",
-      "data": "48599967ce226f0e02c7e94d1c7246e0fe4a6114b438281eb48bd39e127dfd87",
+      "seed": "5e7851adf83bff9d7df8dae63817fdd6b14248f0af674afcc1592d34833b9626",
+      "id": "8737811ddbadf63084138e2709ea55ce1f1d0d4f073dcd684abb5b85d3f0303c",
+      "data": "569154c733b68feb07d71e857d9c9a0c582e96456be4fa397019398b419bf59d",
       "chains": {
-        "535ee4028833d39c8c384f4ac0c2ed687cba72b184553b6140c97d96933b5768": "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
-        "11b3b813c32dadd3f012d2549fac3268e8ce757f78472cb69c985fc7719c4c29": null
+        "fdcb09d95628c33eaa505052031ea1edf17a2c6b60b3439bec2c4fab0a807b75": "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
+        "b3e21210fa348ee7e34de2da99efeecd01ca891c361e7464c1dd8f03c519f326": null
       },
       "previous": [
         "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
+        "75bdb5a188a281c9576331b5573d5be50f7802d92cc591d9dbbbfbcb7ee42de6",
         "893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951"
       ]
     },
-    "seed": "fa495de9115c694164a08d56793c96c439cc9f0c23d39ff63289525b02936b04",
-    "hash": "a1dea5920afbbb37f573eb11932f99e53697ffed0085490d3e4f56d0c74a9971",
-    "timestamp": 1557237802673,
+    "seed": "5332abe80b58ed195c4f9fbfe4ea981a6f4f35f3ffb1dd4d5fd864f25b07ad9f",
+    "hash": "b4121b5fd2b6a9a4bce39a9bc79c35d0ead134dce7fb5673f86f7ea140e69372",
+    "timestamp": 1557740415781,
     "chains": {
       "chain1": "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
       "chain2": null
     },
+    "data": "dmFsdWUgOQ==",
     "block": null
   }
 }
@@ -700,29 +685,31 @@ curl -XGET "$api/chains/chain2?pretty=true"
 
 ```json
 {
-  "took": 5,
+  "took": 4,
   "status": 200,
   "data": {
     "provable": {
-      "seed": "4dfb5cf03372e85d4ddde10a85298b5ce83fad784c0e6d61b5de6c389f7ecd20",
-      "id": "60e8c8b995dc95b79b79d91ea5b8021a2129398020e35954c9857885280c8ab7",
-      "data": "48599967ce226f0e02c7e94d1c7246e0fe4a6114b438281eb48bd39e127dfd87",
+      "seed": "5e7851adf83bff9d7df8dae63817fdd6b14248f0af674afcc1592d34833b9626",
+      "id": "8737811ddbadf63084138e2709ea55ce1f1d0d4f073dcd684abb5b85d3f0303c",
+      "data": "569154c733b68feb07d71e857d9c9a0c582e96456be4fa397019398b419bf59d",
       "chains": {
-        "535ee4028833d39c8c384f4ac0c2ed687cba72b184553b6140c97d96933b5768": "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
-        "11b3b813c32dadd3f012d2549fac3268e8ce757f78472cb69c985fc7719c4c29": null
+        "fdcb09d95628c33eaa505052031ea1edf17a2c6b60b3439bec2c4fab0a807b75": "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
+        "b3e21210fa348ee7e34de2da99efeecd01ca891c361e7464c1dd8f03c519f326": null
       },
       "previous": [
         "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
+        "75bdb5a188a281c9576331b5573d5be50f7802d92cc591d9dbbbfbcb7ee42de6",
         "893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951"
       ]
     },
-    "seed": "fa495de9115c694164a08d56793c96c439cc9f0c23d39ff63289525b02936b04",
-    "hash": "a1dea5920afbbb37f573eb11932f99e53697ffed0085490d3e4f56d0c74a9971",
-    "timestamp": 1557237802673,
+    "seed": "5332abe80b58ed195c4f9fbfe4ea981a6f4f35f3ffb1dd4d5fd864f25b07ad9f",
+    "hash": "b4121b5fd2b6a9a4bce39a9bc79c35d0ead134dce7fb5673f86f7ea140e69372",
+    "timestamp": 1557740415781,
     "chains": {
       "chain1": "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
       "chain2": null
     },
+    "data": "dmFsdWUgOQ==",
     "block": null
   }
 }
@@ -732,23 +719,44 @@ We can see that both requests return the same result.
 
 ---
 
-To delete an entire record chain, not the blockchain itself but all records that belong to a chain you can tun the following command.
+To delete an entire records chain, not the blockchain itself but all records that belong to a chain and the chain itself, you can run the following command:
 
 ```bash
-curl -XDELETE "$api/chains/chain1?pretty=true"
+curl -XDELETE "$api/chains/chain1?pretty=true&data=true"
 ```
 
 ```json
 {
-  "took": 22,
+  "took": 8,
   "status": 200,
   "data": {
-    "deleted": 3
+    "records": 3,
+    "data": {
+      "records": 2,
+      "bytes": 14
+    }
   }
 }
 ```
 
-The response gives you the exact number of record whose data have been deleted.
+The response gives you:
+- the number of records of the chain;
+- the number of records whose data have been deleted;
+- the total bytes released.
+
+```bash
+curl -XGET "$api/chains/chain1?pretty=true"
+```
+
+```json
+{
+  "took": 2,
+  "status": 404,
+  "error": 7,
+  "message": "Chain \"chain1\" not found",
+  "data": "chain1"
+}
+```
 
 ```bash
 curl -XGET "$api/chains/chain2?pretty=true"
@@ -760,28 +768,59 @@ curl -XGET "$api/chains/chain2?pretty=true"
   "status": 200,
   "data": {
     "provable": {
-      "seed": "4dfb5cf03372e85d4ddde10a85298b5ce83fad784c0e6d61b5de6c389f7ecd20",
-      "id": "60e8c8b995dc95b79b79d91ea5b8021a2129398020e35954c9857885280c8ab7",
-      "data": "48599967ce226f0e02c7e94d1c7246e0fe4a6114b438281eb48bd39e127dfd87",
+      "seed": "5e7851adf83bff9d7df8dae63817fdd6b14248f0af674afcc1592d34833b9626",
+      "id": "8737811ddbadf63084138e2709ea55ce1f1d0d4f073dcd684abb5b85d3f0303c",
+      "data": "569154c733b68feb07d71e857d9c9a0c582e96456be4fa397019398b419bf59d",
       "chains": {
-        "535ee4028833d39c8c384f4ac0c2ed687cba72b184553b6140c97d96933b5768": "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
-        "11b3b813c32dadd3f012d2549fac3268e8ce757f78472cb69c985fc7719c4c29": null
+        "fdcb09d95628c33eaa505052031ea1edf17a2c6b60b3439bec2c4fab0a807b75": "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
+        "b3e21210fa348ee7e34de2da99efeecd01ca891c361e7464c1dd8f03c519f326": null
       },
       "previous": [
         "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
+        "75bdb5a188a281c9576331b5573d5be50f7802d92cc591d9dbbbfbcb7ee42de6",
         "893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951"
       ]
     },
-    "seed": "fa495de9115c694164a08d56793c96c439cc9f0c23d39ff63289525b02936b04",
-    "hash": "a1dea5920afbbb37f573eb11932f99e53697ffed0085490d3e4f56d0c74a9971",
-    "timestamp": 1557237802673,
-    "deleted": true,
+    "seed": "5332abe80b58ed195c4f9fbfe4ea981a6f4f35f3ffb1dd4d5fd864f25b07ad9f",
+    "hash": "b4121b5fd2b6a9a4bce39a9bc79c35d0ead134dce7fb5673f86f7ea140e69372",
+    "timestamp": 1557740415781,
+    "chains": {
+      "chain2": null
+    },
     "block": null
   }
 }
 ```
 
-`chain1` has been deleted as a chain label but the record that was refered to is still available (witout any data) and can be accessed using the `chain2` label. Chains label are totally independent even if they are refering to the same records.
+```bash
+curl -XGET "$api/records/75bdb5a188a281c9576331b5573d5be50f7802d92cc591d9dbbbfbcb7ee42de6?pretty=true"
+```
+
+```json
+{
+  "took": 3,
+  "status": 200,
+  "data": {
+    "provable": {
+      "seed": "9f3f00d57b698be1492c9fd37ee208e3cc2e351ce54babebbb77a2c92e457f23",
+      "id": "75bdb5a188a281c9576331b5573d5be50f7802d92cc591d9dbbbfbcb7ee42de6",
+      "data": "7c6302418c02c22807340668866e006a001e69c0095d9ca63c973723d7973733",
+      "chains": {},
+      "previous": [
+        "3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4"
+      ]
+    },
+    "seed": "14c516d7e7f18b969624caf0186a5c4e9607160cfa0d979c8268e470e817dd9c",
+    "hash": "03267f42f7ceb369ab1c976c0ef2e005032e1162634f484440de9fa90622b555",
+    "timestamp": 1557740304324,
+    "chains": {},
+    "data": "dmFsdWUgNg==",
+    "block": null
+  }
+}
+```
+
+`chain1` has been deleted as a chain label but the record that was referred to is still available (without any data) and can be accessed using the `chain2` label. The data of record `75bdb5a188a281c9576331b5573d5be50f7802d92cc591d9dbbbfbcb7ee42de6` hasn't been deleted because this record was not part of `chain1`.
 
 ### Block API calls
 
@@ -793,14 +832,14 @@ curl -XPOST "$api/blocks?pretty=true&max=1"
 
 ```json
 {
-  "took": 33,
+  "took": 25,
   "status": 201,
   "data": {
-    "root": "140a2e59ef842194521253d6e1fc05d0d51322d8cbb95c02f2e16b4d0511297b",
+    "root": "4f6527842fbe9f2bf0fdeb21be5ce47fb9ad6c52cca2af24fed8603c14a18361",
     "index": 2,
-    "timestamp": "1557238261951",
+    "timestamp": "1557740559050",
     "count": 1,
-    "previous": "3afdfa8d8e6749d407c144cfc67b1562411a25c493738772c7a01e418bbc0a2f"
+    "previous": "fc0d9bb42ac879053284e043527544582eb54845421043a285f8045835e9edf2"
   }
 }
 ```
@@ -823,14 +862,14 @@ curl -XPOST "$api/blocks?pretty=true"
 
 ```json
 {
-  "took": 45,
+  "took": 44,
   "status": 201,
   "data": {
-    "root": "c10fc745288b1178b7887029e55dfe297054a94d15445f083822cf0a8d89cf16",
+    "root": "b258a9f295bd6509ac7e9196d1e57ea07ff6631434021768fd8ca4f3d8a6ab39",
     "index": 3,
-    "timestamp": "1557238301983",
+    "timestamp": "1557740568575",
     "count": 3,
-    "previous": "140a2e59ef842194521253d6e1fc05d0d51322d8cbb95c02f2e16b4d0511297b"
+    "previous": "4f6527842fbe9f2bf0fdeb21be5ce47fb9ad6c52cca2af24fed8603c14a18361"
   }
 }
 ```
@@ -843,14 +882,14 @@ curl -XPOST "$api/blocks?pretty=true"
 
 ```json
 {
-  "took": 31,
+  "took": 23,
   "status": 201,
   "data": {
-    "root": "4dbfcd9a88239aa945cfd6d21c79054da16983c733af790c278e84515d25dae3",
+    "root": "203b7abe6cd29ccc5228bf61a5d685606cb6a320523ab5328d48509eab7ac4be",
     "index": 4,
-    "timestamp": "1557238320581",
+    "timestamp": "1557736791661",
     "count": 0,
-    "previous": "c10fc745288b1178b7887029e55dfe297054a94d15445f083822cf0a8d89cf16"
+    "previous": "f535911011a1871cb21663331fe684ebcea639552befc043e2a088abb7789a34"
   }
 }
 ```
@@ -865,7 +904,7 @@ curl -XPOST "$api/blocks?pretty=true&no-empty=true"
 
 ```json
 {
-  "took": 40,
+  "took": 19,
   "status": 200,
   "data": null
 }
@@ -883,14 +922,14 @@ curl -XGET "$api/blocks?pretty=true"
 
 ```json
 {
-  "took": 3,
+  "took": 2,
   "status": 200,
   "data": {
-    "root": "4dbfcd9a88239aa945cfd6d21c79054da16983c733af790c278e84515d25dae3",
-    "index": 4,
-    "timestamp": "1557238320581",
-    "count": 0,
-    "previous": "c10fc745288b1178b7887029e55dfe297054a94d15445f083822cf0a8d89cf16"
+    "root": "b258a9f295bd6509ac7e9196d1e57ea07ff6631434021768fd8ca4f3d8a6ab39",
+    "index": 3,
+    "timestamp": "1557740568575",
+    "count": 3,
+    "previous": "4f6527842fbe9f2bf0fdeb21be5ce47fb9ad6c52cca2af24fed8603c14a18361"
   }
 }
 ```
@@ -906,9 +945,9 @@ curl -XGET "$api/blocks/1?pretty=true"
   "took": 4,
   "status": 200,
   "data": {
-    "root": "3afdfa8d8e6749d407c144cfc67b1562411a25c493738772c7a01e418bbc0a2f",
+    "root": "fc0d9bb42ac879053284e043527544582eb54845421043a285f8045835e9edf2",
     "index": 1,
-    "timestamp": "1557237311683",
+    "timestamp": "1557739890940",
     "count": 5,
     "previous": null
   }
@@ -927,9 +966,9 @@ curl -XGET "$api/blocks/$root?pretty=true"
   "took": 3,
   "status": 200,
   "data": {
-    "root": "3afdfa8d8e6749d407c144cfc67b1562411a25c493738772c7a01e418bbc0a2f",
+    "root": "fc0d9bb42ac879053284e043527544582eb54845421043a285f8045835e9edf2",
     "index": 1,
-    "timestamp": "1557237311683",
+    "timestamp": "1557739890940",
     "count": 5,
     "previous": null
   }
@@ -940,7 +979,7 @@ curl -XGET "$api/blocks/$root?pretty=true"
 
 ```bash
 # create a block with a file
-cat FILE | curl -v -XPOST -H "Content-Type: application/octet-stream" "http://localhost:8080/records" --data-binary @-
+cat FILE | curl -XPOST -H "Content-Type: application/octet-stream" "$api/records" --data-binary @-
 
 # redis interactive client
 docker run --rm -it --network host redis redis-cli
@@ -955,7 +994,7 @@ docker run --rm -i --network host redis redis-cli eval "return #redis.call('keys
 - ECMAScript 6 or Typescript with unit/integration tests, code coverage, code documentation, loggers with log level
 - split modules into dedicated projects?
 - NPM publication
-- a dedicated project precedence-proof
+- `precedence-proofer` project
 - Redis auto-reconnection (bad gateway error)
 
 # Debezium example
