@@ -24,8 +24,8 @@ All these features allow you bring secure blockchain-powered traceability featur
 **_precedence_** is edited by [**_inBlocks_**](https://precedence.inblocks.io) so you can rely on us for hosting the solution for you, supporting you during the deployment and providing you a very strong SLA.
 
 In the following:
-- "fingerprint" means "SHA-256 hash at hexadecimal string format";
-- "obfuscated fingerprint" means fingerprint of "<SEED> <VALUE>".
+- "fingerprint" means "hexadecimal string format fo the hash computed with SHA-256 algorithm";
+- "obfuscated fingerprint of <VALUE>" means fingerprint of "<SEED> <VALUE>".
 
 # Quick Start
 
@@ -139,14 +139,14 @@ We can check that:
 ```bash
 echo -n 'db225b8dddc8b3a370921ce095a8639031c72d2f80879cdea47472b8d2a5c289' | sha256sum
 ```
-- the obfuscated fingerprint of provided data is equal to `provable.data` value:
+- the obfuscated fingerprint of the data is equal to `provable.data` value:
 ```bash
 echo -n "db225b8dddc8b3a370921ce095a8639031c72d2f80879cdea47472b8d2a5c289 $(echo -n 'value 1' | sha256sum | cut -d' ' -f1)" | sha256sum
 ```
 
 ---
 
-Let's create another record.
+Let's create another record with the `store=true` parameter.
 
 ```bash
 curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=true&store=true" -d "value 2"
@@ -173,7 +173,7 @@ curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=tru
 }
 ```
 
-In the response you can see that the data you sent has been persisted in **_precedence_** in the `data` field using base64 encoding.
+In the response you can see that the data you have sent has been persisted in **_precedence_** in the `data` field using base64 encoding.
 
 To decode the data you can run:
 
@@ -209,7 +209,7 @@ curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=tru
 }
 ```
 
-All the values of the `provable` object are different from the previous ones, even with the same data value. This is made possible by using the `seed` in the hashing process. This way the `provable` fields are 100% obfuscated and can not lead to data leaking.
+All the values of the `provable` object are different from the previous one, even with the same data value. This is made possible by using the `seed` in the hashing process. This way the `provable` fields are 100% obfuscated and can not lead to data leaking.
 
 ---
 
@@ -239,11 +239,11 @@ curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=tru
 }
 ```
 
-By doing so the received data fingerprint is compared to the provided one to make sure that the received data is consistent with the sent data.
+By doing so the received data fingerprint is compared to the provided one to make sure that the received data has not be altered by the network.
 
 ---
 
-You can specify an identifier for your record. This identifier must be unique and so can not be used to create multiple records.
+You can specify an identifier for your record. This identifier must be unique and so can not be attached to any other record.
 
 ```bash
 curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=true&store=true&id=E518B4BB-2668-4ED7-B9E3-E63803BCAC93" -d "value 5"
@@ -376,7 +376,7 @@ The returned document contains information related to the block the record belon
 - `index` is the block number that contains this record;
 - `proof` is an array that contains the agnostic proof-of-existence of this record in the block.
 
-How to prove:
+To check the proof, a dedicated open-source project will be released soon. In the meantime you can do the following:
 - the fingerprint of `provable` is equal to the `hash` value: `08771d969c9cf624534302e9857f3366b2d9b22dc2b4443ee5679d2f99b82277`
 ```bash
 echo -n '{"seed":"5e7a51ec56286ae1bcff8a225b488b6bc0a6eec3c6157c587a3a204d2732224d","id":"3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4","data":"09e18d354ed60c17eca0db7ea276495b9757c90790cbdaf0255d0159e8bf81b1","chains":{},"previous":[]}' | sha256sum | cut -d' ' -f1
@@ -400,7 +400,7 @@ echo -n "f851808080a0cdbce873a2151f35ec1eb36d4802e0781e4f4c38954015b9044ba3dc1ba
 
 ---
 
-You can delete the data that is stored in the record. The record itself can not be deleted because it would cause chain inconsistency.
+You can delete the data that is stored in the record. The record itself can not be deleted because it would cause chain inconsistency, same thing for the hash of the data, but the data itself is not required to keep the chain consistent.
 
 ```bash
 curl -XDELETE "$api/records/3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4?pretty=true"
@@ -448,11 +448,11 @@ curl -XGET "$api/records/3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745
 }
 ```
 
-The original `data` value has been removed (GDPR compliant).
+The original `data` value has been removed.
 
 ---
 
-To create a record as a new state of an existing record we should use the `previous` parameter. It allows you to link you records with each other.
+To create a record as a new state of an existing record you should use the `previous` parameter. It allows you to link you records with each other.
 
 ```bash
 curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=true&id=61E51581-7763-4486-BF04-35045DC7A0D3&store=true&previous=3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4" -d "value 6"
@@ -481,7 +481,7 @@ curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=tru
 }
 ```
 
-The `previous` field contains the parameter you provided. This parameter must be the identifier that was returned at creation time, you can not use your own identifier to link your records. If you want to link your record based on a label that you control, use the chain parameter (this is explain in the [chain](#chain-api-calls) section).
+The `previous` field contains the parameter you provided. This parameter must be the identifier that was returned at creation time, you can not use your own identifier to link your records. If you want to link your record based on a label that you control, use the chain parameter (this is explain in the [chain](#chain-api-calls) section below).
 
 ## Chain API calls
 
@@ -517,7 +517,7 @@ curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=tru
 }
 ```
 
-The field `chains` contains information about the chain state at insertion time. In this scenario the chain `chain1` was never used before so this newly created record is the first and the last record of this chain. Because there was no record in this chain the value set in `chain.chain1` is `null`. When the chain exists, the inserted record is appended behind the last record of the chain specified in the parameter `chain`. In the same time, and in a atomic way, the newly inserted record become the last record of the chain and can be referred to using the `chain1` label.
+The field `chains` contains information about the chain state at insertion time. In this scenario the chain `chain1` was never used before so this newly created record is the first and the last record of this chain. Because there was no record in this chain the value set in `chain.chain1` is `null`. When the chain exists, the inserted record is appended behind the last record of the chain specified in the parameter `chain`. In the same time, and in a atomic way, the newly inserted record become the last record of the chain and can be refered to using the `chain1` label.
 
 Let's insert a second record using this `chain1` label.
 
@@ -552,7 +552,7 @@ curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=tru
 }
 ```
 
-The field `chains` contains the key `chain1` whose value is the record identifier of the previously inserted record. The record has been appended at the end of the chain and the label `chain1` now refers to the newly inserted record. This information is provable because it is part of the record definition. The key stored in `provable.chains` has been obfuscated to avoid any data leak (GDPR compliant). `chains` can be removed by deleting the entire chain.
+The field `chains` contains the key `chain1` whose value is the record identifier of the previously inserted record. The record has been appended at the end of the chain and the label `chain1` now refers to the newly inserted record. This information is provable because it is part of the record definition. The key stored in `provable.chains` has been obfuscated to avoid any data leak. `chains.chain1` can be removed by deleting the entire chain.
 
 We can check that:
 - the obfuscated fingerprint of `chain1` is equal to `e1abb09789b1601f4b79767f0fc12233d305a2682d7fafa3090cbd85df9f235d`:
@@ -563,7 +563,7 @@ echo -n "a3962b4dec2ea8b62bf8e50c6683fc389f2093bdb2fe760da6bea142d1f4f247 chain1
 
 ---
 
-It is possible to retrieve the record currently referred by a chain name.
+To retrieve the record currently refered by a chain name (i.e. the last record of the chain), you can use the following API call:
 
 ```bash
 curl -XGET "$api/chains/chain1?pretty=true"
@@ -599,7 +599,7 @@ curl -XGET "$api/chains/chain1?pretty=true"
 
 ---
 
-You can insert a record by setting multiple chain names and the previous parameter.
+You can insert a record by setting multiple `chain` and `previous` parameters.
 
 ```bash
 curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=true&chain=chain1&chain=chain2&previous=893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951&previous=75bdb5a188a281c9576331b5573d5be50f7802d92cc591d9dbbbfbcb7ee42de6&store=true" -d "value 9"
@@ -636,11 +636,11 @@ curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=tru
 }
 ```
 
-In this case the **_precedence_** server computes at insertion time and in a atomic way the previous record of this newly inserted record. It uses the chain parameters to get the list of the previous records, it merges this set to the set defined using the `previous` parameter. This atomic operation also make sure that this record is considered as the last record of the chains set in parameter.
+In this case the **_precedence_** server computes at insertion time and in a atomic way the previous record(s) of this newly inserted record. It uses the chain parameters to get the list of the previous records, it merges this set to the set defined using the `previous` parameter. This atomic operation also make sure that this record is considered as the last record of the chains that have been set as parameter.
 
 ---
 
-The previous inserted record is the last records on both `chain1` and `chain2`. Let's try to retrieve the record referred to by each chain label `chain1` and `chain2` to compare the result.
+The previous inserted record is the last records on both `chain1` and `chain2`. Let's try to retrieve the records refered by chain `chain1` and chain `chain2` to compare the result.
 
 ```bash
 curl -XGET "$api/chains/chain1?pretty=true"
@@ -714,11 +714,11 @@ curl -XGET "$api/chains/chain2?pretty=true"
 }
 ```
 
-We can see that both requests return the same result.
+We can see that both requests return the same result, both chains have the same the last record.
 
 ---
 
-To delete an entire records chain, not the blockchain itself but all records that belong to a chain and the chain itself, you can run the following command:
+To delete an entire chain, not the blockchain itself but all records that belong to a chain, you can run the following command:
 
 ```bash
 curl -XDELETE "$api/chains/chain1?pretty=true&data=true"
@@ -818,7 +818,7 @@ curl -XGET "$api/records/75bdb5a188a281c9576331b5573d5be50f7802d92cc591d9dbbbfbc
 }
 ```
 
-`chain1` has been deleted as a chain label but the record that was referred to is still available (without any data) and can be accessed using the `chain2` label. The data of record `75bdb5a188a281c9576331b5573d5be50f7802d92cc591d9dbbbfbcb7ee42de6` hasn't been deleted because this record was not part of `chain1`.
+`chain1` has been deleted as a chain label but the record that was refered to by this chain label is still available (without any data) and can be accessed using the `chain2` label. The data of record `75bdb5a188a281c9576331b5573d5be50f7802d92cc591d9dbbbfbcb7ee42de6` hasn't been deleted because this record was not part of `chain1`.
 
 ### Block API calls
 
@@ -846,7 +846,7 @@ curl -XPOST "$api/blocks?pretty=true&max=1"
 ```
 
 The block creation API method returns the following informations:
-- `took` is the number of millisecond this request needed to be processed at server-side;
+- `took` is the number of milliseconds this request needed to be processed at server-side;
 - `status` is the HTTP status code;
 - `data` contains every piece of information related to the block you created;
   - `root` is the root hash of the block;
@@ -1016,6 +1016,8 @@ docker run --rm -i --network host redis redis-cli eval "return #redis.call('keys
 - `precedence-proofer` project
 - Redis auto-reconnection (bad gateway error)
 
-# Debezium example
+# Change Data Capture
 
-[demo](https://github.com/inblocks/precedence-debezium/tree/poc-1/demo)
+**precedence** can be easily plugged to an open source project that provides a low latency data streaming platform for change data capture (CDC) named [Debezium](https://github.com/debezium/debezium). We implemented a connector compliant with both Debezium and **precedence** and we have released it in the GitHub project [inblocks/precedence-debezium](https://github.com/inblocks/precedence-debezium). You should refer to this other project documentation to know more about the way **precedence** and Debezium can be plugged to each other.
+
+If you want to run a demo by yourself you can check [this page](https://github.com/inblocks/precedence-debezium/tree/poc-1/demo).
