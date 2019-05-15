@@ -59,7 +59,6 @@ const getNewBlock = async (redis) => {
   const blockPendingStreamId = await redis.xadd(blockPendingStream, '*', 'index', index, 'location', location)
   const block = {
     index,
-    previous,
     streamId,
     location,
     blockPendingStreamId,
@@ -71,7 +70,7 @@ const getNewBlock = async (redis) => {
     count: 0
   }
   await new Promise((resolve, reject) => {
-    block.trie.put('previous', block.previous, e => {
+    block.trie.put('previous', previous, e => {
       try {
         if (e) {
           return reject(e)
@@ -127,16 +126,8 @@ const cleanBlocks = (redis) => {
   })
 }
 
-const getProof = async (redis, timestamp, key) => {
-  const block = await getNextBlockInfo(redis, timestamp)
-  if (!block) {
-    return null
-  }
+const prove = async (trie, root, key) => {
   return new Promise((resolve, reject) => {
-    const trie = new Trie(Levelup(Redisdown(block.location), {
-      host: redis.options.host,
-      port: redis.options.port
-    }), Buffer.from(block.root, 'hex'))
     trie.get(key, (e) => {
       try {
         if (e) {
@@ -147,10 +138,7 @@ const getProof = async (redis, timestamp, key) => {
             if (e) {
               return reject(e)
             }
-            resolve({
-              index: block.index,
-              proof: prove.map(o => o.toString('hex'))
-            })
+            resolve(prove.map(o => o.toString('hex')))
           } catch (e) {
             reject(e)
           }
@@ -160,6 +148,24 @@ const getProof = async (redis, timestamp, key) => {
       }
     })
   })
+}
+
+const getProof = async (redis, timestamp, key) => {
+  const block = await getNextBlockInfo(redis, timestamp)
+  if (!block) {
+    return null
+  }
+  return {
+    index: block.index,
+    proof: await prove(
+      new Trie(Levelup(Redisdown(block.location), {
+        host: redis.options.host,
+        port: redis.options.port
+      })),
+      block.root,
+      key
+    )
+  }
 }
 
 const getBlock = async (redis, id = null) => {
@@ -243,7 +249,7 @@ const createBlock = async (redis, empty, max) => {
       timestamp: block.timestamp,
       count: block.count,
       root: root,
-      previous: block.previous
+      previous: block.index === 1 ? null : await prove(block.trie, root, 'previous')
     }
     await execOperations(redis, [
       ['xadd', blockStream, streamId, 'block', JSON.stringify(result)],
