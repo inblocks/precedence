@@ -1,8 +1,8 @@
 const Redis = require('ioredis')
 
-const merkle = require('./blocks')
-const record = require('./records')
+const blocks = require('./blocks')
 const defaults = require('./defaults')
+const record = require('./records')
 
 module.exports = (options = defaults) => {
   const namespace = options.namespace || defaults.namespace
@@ -16,12 +16,17 @@ module.exports = (options = defaults) => {
     maxRetriesPerRequest: null
   })
 
+  const webhooks = (options.webhooks || defaults.webhooks).length > 0 && require('./webhook')(
+    redisReadOnly,
+    options.webhooks || defaults.webhooks
+  )
+
   const getRecord = async (id) => {
     const result = await record.getRecord(redisReadOnly, id)
     if (!result) {
       return null
     }
-    result.block = await merkle.getProof(redisReadOnly, result.timestamp, result.provable.id)
+    result.block = await blocks.getProof(redisReadOnly, result.timestamp, result.provable.id)
     return result
   }
 
@@ -41,13 +46,19 @@ module.exports = (options = defaults) => {
 
   const deleteChain = (id, data = false) => record.deleteChain(redisReadOnly, id, data)
 
-  const getBlock = (id = null) => merkle.getBlock(redisReadOnly, id)
+  const getBlock = (id = null) => blocks.getBlock(redisReadOnly, id)
 
-  const createBlock = (empty = defaults.block.empty, max = defaults.block.max) => {
-    return merkle.createBlock(redisReadOnly, empty, max)
+  const createBlock = async (empty = defaults.block.empty, max = defaults.block.max) => {
+    const block = await blocks.createBlock(redisReadOnly, empty, max)
+    setTimeout(() => {
+      if (webhooks && block) {
+        webhooks.add('block', block)
+      }
+    }, 0)
+    return block
   }
 
-  const lib = {
+  return {
     redisReadOnly,
     getRecord,
     getLastRecord,
@@ -56,13 +67,8 @@ module.exports = (options = defaults) => {
     deleteRecord,
     deleteChain,
     getBlock,
-    createBlock,
-    extensions: {}
+    createBlock
   }
-  Object.entries(defaults.extensions || {}).forEach(([key, value]) => {
-    lib.extensions[key] = require(value)(key, lib)
-  })
-  return lib
 }
 
 module.exports.defaults = defaults

@@ -46,7 +46,7 @@ const createRecords = async (redis, records, preExec) => {
     for (const record of records) {
       const id = record.id ? sha256(record.id) : random(32)
       const key = util.format(recordInfoKeyFormat, id)
-      redis.watch(key)
+      await redis.watch(key)
       if (await redis.exists(key)) {
         throw new RecordAlreadyExistsError(id)
       }
@@ -65,7 +65,7 @@ const createRecords = async (redis, records, preExec) => {
       const chains = {}
       const previous = {}
       for (const chain of record.chains) {
-        await redis.watch([chain])
+        await redis.watch(chain)
         const last = local.chain[chain] ? local.chain[chain].id : await getLastRecordId(redis, chain)
         local.chain[chain] = id
         chains[chain] = last

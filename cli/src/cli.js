@@ -71,10 +71,7 @@ cli.run('precedence', {
             type: Number,
             description: 'Set the maximum number of records of this block'
           }],
-          _exec: (command, definitions, args, options) => exec('POST', '/blocks', {
-            empty: !options['no-empty'],
-            max: options.max
-          })
+          _exec: (command, definitions, args, options) => exec('POST', '/blocks', options)
         },
         get: {
           _description: `Get a block by its index (number) or its root hash (SHA-256 hexadecimal string).

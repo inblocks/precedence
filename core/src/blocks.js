@@ -57,11 +57,12 @@ const getNewBlock = async (redis) => {
   }
   const location = crypto.randomBytes(32).toString('hex')
   const blockPendingStreamId = await redis.xadd(blockPendingStream, '*', 'index', index, 'location', location)
-  const block = {
+  return {
     index,
     streamId,
     location,
     blockPendingStreamId,
+    previous,
     timestamp: blockPendingStreamId.split('-')[0],
     trie: new Trie(Levelup(Redisdown(location), {
       host: redis.options.host,
@@ -69,19 +70,6 @@ const getNewBlock = async (redis) => {
     })),
     count: 0
   }
-  await new Promise((resolve, reject) => {
-    block.trie.put('previous', previous, e => {
-      try {
-        if (e) {
-          return reject(e)
-        }
-        resolve()
-      } catch (e) {
-        reject(e)
-      }
-    })
-  })
-  return block
 }
 
 const cleanBlocks = (redis) => {
@@ -159,9 +147,11 @@ const getProof = async (redis, timestamp, key) => {
     index: block.index,
     proof: await prove(
       new Trie(Levelup(Redisdown(block.location), {
-        host: redis.options.host,
-        port: redis.options.port
-      })),
+          host: redis.options.host,
+          port: redis.options.port
+        }),
+        Buffer.from(block.root, 'hex')
+      ),
       block.root,
       key
     )
@@ -241,6 +231,18 @@ const createBlock = async (redis, empty, max) => {
       return null
     }
     const streamId = block.count > 0 ? block.streamId : getNextStreamId(block.streamId)
+    await new Promise((resolve, reject) => {
+      block.trie.put('previous', block.previous, e => {
+        try {
+          if (e) {
+            return reject(e)
+          }
+          resolve()
+        } catch (e) {
+          reject(e)
+        }
+      })
+    })
     const root = block.trie.root.toString('hex')
     const result = {
       streamId,
@@ -249,7 +251,10 @@ const createBlock = async (redis, empty, max) => {
       timestamp: block.timestamp,
       count: block.count,
       root: root,
-      previous: block.index === 1 ? null : await prove(block.trie, root, 'previous')
+      previous: block.index === 1 ? null : {
+        root: block.previous,
+        proof: await prove(block.trie, root, 'previous')
+      }
     }
     await execOperations(redis, [
       ['xadd', blockStream, streamId, 'block', JSON.stringify(result)],

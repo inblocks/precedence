@@ -7,40 +7,37 @@ const {
 
 class RecordDataNotFoundError extends PrecedenceError {
   constructor (id) {
-    super('API.RecordDataNotFoundError', `Record "${id}" data not found`, id)
+    super('API.RecordDataNotFoundError', `Record "${id}" data not found`)
   }
 }
 
 class BlockNotFoundError extends PrecedenceError {
   constructor (id) {
-    super('API.BlockNotFoundError', `Block "${id}" not found`, id)
+    super('API.BlockNotFoundError', `Block "${id}" not found`)
   }
 }
 
 class ChainNotFoundError extends PrecedenceError {
   constructor (id) {
-    super('API.ChainNotFoundError', `Chain "${id}" not found`, id)
+    super('API.ChainNotFoundError', `Chain "${id}" not found`)
   }
 }
 
 class UnsupportedMediaTypeError extends PrecedenceError {
-  constructor (type) {
-    super('API.UnsupportedMediaTypeError', 'Unsupported media type', type)
+  constructor () {
+    super('API.UnsupportedMediaTypeError', 'Unsupported media type')
   }
 }
 
 class RequestEntityTooLargeError extends PrecedenceError {
-  constructor (limit) {
-    super('API.RequestEntityTooLargeError', 'Request entity too large', limit)
+  constructor (value) {
+    super('API.RequestEntityTooLargeError', 'Request entity too large', { value })
   }
 }
 
 class MismatchError extends PrecedenceError {
   constructor (provided, computed) {
-    super('API.MismatchError', `Provided SHA-256 hexadecimal string "${provided}" mismatches "${computed}"`, {
-      provided,
-      computed
-    })
+    super('API.MismatchError', `Provided SHA-256 hexadecimal string "${provided}" mismatches "${computed}"`)
   }
 }
 

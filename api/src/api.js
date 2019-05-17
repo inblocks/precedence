@@ -62,7 +62,7 @@ const api = fn => async (req, res) => {
     }
   } finally {
     if (!res.headersSent) {
-      res.status(res.statusCode)
+      res.status(result.status)
       result.took = (Date.now() - req._startTime) || 1
       res.set('Content-Type', 'application/json; charset=utf-8')
       res.send(req.query.pretty === 'true' ? `${JSON.stringify(result, null, 2)}\n` : result)
@@ -113,16 +113,27 @@ require('../../common/src/').run('precedence-api', {
     type: String,
     description: `Set the Redis server location (default: ${precedenceDefaults.redis})`,
     defaultValue: precedenceDefaults.redis
+  }, {
+    name: 'webhook',
+    type: String,
+    description: `Set a webhook (block creation)`,
+    lazyMultiple: true
   }],
   _exec: (command, definitions, args, options) => {
-    log(JSON.stringify(options))
+    log(JSON.stringify(options, null, 2))
+    options.webhooks = options.webhook
+    delete options.webhook
 
     const precedence = require('../../core/src')(options)
 
     const getBlock = () => api(async req => {
       const result = await precedence.getBlock(req.params.id)
       if (!result) {
-        throw new BlockNotFoundError(req.params.id)
+        if (!req.params.id) {
+          return null
+        } else {
+          throw new BlockNotFoundError(req.params.id)
+        }
       }
       return result
     })
@@ -143,7 +154,7 @@ require('../../common/src/').run('precedence-api', {
       limit: options.limit || defaults.limit
     }), api(async (req, res) => {
       if (req.headers['content-type'] && req.headers['content-type'].toLowerCase() !== 'application/octet-stream') {
-        throw new UnsupportedMediaTypeError(req.headers['content-type'])
+        throw new UnsupportedMediaTypeError()
       }
       const hash = sha256(Buffer.isBuffer(req.body) ? req.body : Buffer.from([]))
       if (req.query.hash && req.query.hash !== hash) {

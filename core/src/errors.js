@@ -15,13 +15,13 @@ class ConflictError extends PrecedenceError {
 
 class RecordAlreadyExistsError extends PrecedenceError {
   constructor (id) {
-    super('CORE.RecordAlreadyExistsError', `Record "${id}" already exists`, id)
+    super('CORE.RecordAlreadyExistsError', `Record "${id}" already exists`)
   }
 }
 
 class RecordNotFoundError extends PrecedenceError {
   constructor (id) {
-    super('CORE.RecordNotFoundError', `Record "${id}" not found`, id)
+    super('CORE.RecordNotFoundError', `Record "${id}" not found`)
   }
 }
 
