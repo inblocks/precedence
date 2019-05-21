@@ -44,6 +44,7 @@ module.exports = (redisReadOnly, urls) => {
               data: {
                 timestamp,
                 id: object.id,
+                type: object.type,
                 data: JSON.parse(object.data)
               }
             })
@@ -80,14 +81,13 @@ module.exports = (redisReadOnly, urls) => {
   return {
     add: async (type, data) => {
       const id = random(32)
-      const ids = []
       for (const url of urls) {
-        ids.push(await redis.xadd(webhookStream, '*',
+        await redis.xadd(webhookStream, '*',
           'url', url,
           'id', id,
           'type', type,
           'data', JSON.stringify(data)
-        ))
+        )
       }
     }
   }
