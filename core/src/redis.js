@@ -3,7 +3,7 @@ const ConcurrentError = require('./errors').ConcurrentError
 module.exports.getNextStreamId = id => {
   if (id) {
     const split = id.split('-')
-    return `${split[0]}-${split.length > 1 ? (Number(split[1]) + 1) : 0}`
+    return `${split[0]}-${split.length > 1 ? (Number(split[1]) + 1) : 1}`
   }
   return '0-1'
 }
@@ -22,7 +22,7 @@ module.exports.objectify = array => {
 module.exports.getNewRedisClient = (redis, override) => redis.duplicate(override || { readOnly: false })
 
 module.exports.getTime = (redis) => {
-  return redis.time().then(result => Number(`${result[0]}${Math.round(result[1] / 1000)}`))
+  return redis.time().then(result => Number(`${result[0]}${`00${Math.round(result[1] / 1000)}`.slice(-3)}`))
 }
 
 module.exports.execOperations = async (redis, operations) => {
