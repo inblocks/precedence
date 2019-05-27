@@ -160,16 +160,12 @@ require('../../common/src/').run('precedence-api', {
       if (req.query.hash && req.query.hash !== hash) {
         throw new MismatchError(req.query.hash, hash)
       }
-      const chains = Array.isArray(req.query.chain) ? req.query.chain : (req.query.chain ? [req.query.chain] : [])
-      const previous = Array.isArray(req.query.previous) ? req.query.previous : (req.query.previous ? [req.query.previous] : [])
-      const id = req.query.id
-      const data = req.query.store === 'true' ? req.body : undefined
       return precedence.createRecords([{
-        hash,
-        chains,
-        previous,
-        id,
-        data
+        id: req.query.id,
+        data: req.body,
+        chains: Array.isArray(req.query.chain) ? req.query.chain : (req.query.chain && [req.query.chain]),
+        previous: Array.isArray(req.query.previous) ? req.query.previous : (req.query.previous && [req.query.previous]),
+        store: req.query.store === 'true'
       }]).then(result => {
         res.status(201)
         return result[0]

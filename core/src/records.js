@@ -57,20 +57,22 @@ const createRecords = async (redis, records, preExec) => {
         hash: null,
         timestamp
       }
-      if (record.data) {
+      if (record.store === true) {
         operations.push(['set', util.format(recordDataKeyFormat, id), record.data])
         recordInfo.data = record.data.length
       }
-      recordInfo.provable.data = sha256(`${seed} ${record.hash}`)
+      recordInfo.provable.data = sha256(`${seed} ${sha256(record.data)}`)
       const chains = {}
       const previous = {}
-      for (const chain of record.chains) {
-        await redis.watch(chain)
-        const last = local.chain[chain] ? local.chain[chain].id : await getLastRecordId(redis, chain)
-        local.chain[chain] = id
-        chains[chain] = last
-        if (last) {
-          previous[last] = true
+      if (record.chains) {
+        for (const chain of record.chains) {
+          await redis.watch(chain)
+          const last = local.chain[chain] ? local.chain[chain].id : await getLastRecordId(redis, chain)
+          local.chain[chain] = id
+          chains[chain] = last
+          if (last) {
+            previous[last] = true
+          }
         }
       }
       recordInfo.chains = sortObject(chains)
@@ -78,16 +80,18 @@ const createRecords = async (redis, records, preExec) => {
         r[sha256(`${seed} ${k}`)] = v
         return r
       }, {})
-      for (const id of record.previous) {
-        if (!local.record[id] && (await getRecordInfo(redis, id)) === null) {
-          throw new RecordNotFoundError(id)
+      if (record.previous) {
+        for (const id of record.previous) {
+          if (!local.record[id] && (await getRecordInfo(redis, id)) === null) {
+            throw new RecordNotFoundError(id)
+          }
+          local.record[id] = true
+          previous[id] = true
         }
-        local.record[id] = true
-        previous[id] = true
       }
       recordInfo.provable.previous = Object.keys(previous).sort()
       recordInfo.hash = sha256(JSON.stringify(recordInfo.provable))
-      const result = recordResponse(recordInfo, record.data)
+      const result = recordResponse(recordInfo, record.store === true && record.data)
       operations.push(
         [
           'xadd', recordStream, '*',
