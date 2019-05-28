@@ -1,5 +1,5 @@
 const { objectify } = require('./redis')
-const { random } = require('./utils')
+const { random, sign } = require('./utils')
 
 const count = 10
 const webhookStream = 'webhook.stream'
@@ -35,18 +35,25 @@ module.exports = (redisReadOnly, urls) => {
           }
           delete blacklist[object.url]
           try {
+            const data = JSON.stringify({
+              timestamp,
+              id: object.id,
+              type: object.type,
+              data: JSON.parse(object.data)
+            })
+            const headers = {
+              'content-type': 'application/json; charset=utf-8',
+              'user-agent': `precedence/${require('../package.json').version}`
+            }
+            if (process.env.PRECEDENCE_PRIVATE_KEY) {
+              headers['precedence-signature'] = sign(data, process.env.PRECEDENCE_PRIVATE_KEY)
+            }
             const response = await require('axios').request({
+              method: 'post',
               timeout: 10000,
-              headers: {
-                'user-agent': `precedence/${require('../package.json').version}`
-              },
+              headers,
               url: object.url,
-              data: {
-                timestamp,
-                id: object.id,
-                type: object.type,
-                data: JSON.parse(object.data)
-              }
+              data
             })
             const message = `"${response.status} ${response.statusText}" ${log}`
             if (response.status === 200) {

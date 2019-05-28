@@ -147,10 +147,10 @@ const getProof = async (redis, timestamp, key) => {
     index: block.index,
     proof: await prove(
       new Trie(Levelup(Redisdown(block.location), {
-          host: redis.options.host,
-          port: redis.options.port
-        }),
-        Buffer.from(block.root, 'hex')
+        host: redis.options.host,
+        port: redis.options.port
+      }),
+      Buffer.from(block.root, 'hex')
       ),
       block.root,
       key
