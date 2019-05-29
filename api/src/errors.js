@@ -2,7 +2,8 @@ const {
   PrecedenceError,
   ConflictError,
   RecordAlreadyExistsError,
-  RecordNotFoundError
+  RecordNotFoundError,
+  HashMismatchedDataError
 } = require('../../core/src/errors')
 
 class RecordDataNotFoundError extends PrecedenceError {
@@ -35,21 +36,15 @@ class RequestEntityTooLargeError extends PrecedenceError {
   }
 }
 
-class MismatchError extends PrecedenceError {
-  constructor (provided, computed) {
-    super('API.MismatchError', `Provided SHA-256 hexadecimal string "${provided}" mismatches "${computed}"`)
-  }
-}
-
 module.exports = {
   PrecedenceError,
   ConflictError,
   RecordAlreadyExistsError,
   RecordNotFoundError,
+  HashMismatchedDataError,
   RecordDataNotFoundError,
   BlockNotFoundError,
   ChainNotFoundError,
   UnsupportedMediaTypeError,
-  RequestEntityTooLargeError,
-  MismatchError
+  RequestEntityTooLargeError
 }

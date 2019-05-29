@@ -165,7 +165,7 @@ You can explicitely set the previous record(s) of the record you are creating (b
                 })
               })
             } else {
-              return cli.errorUsage(command, definitions, 'DATA is not defined and stdin is empty')
+              buffer = Buffer.from([])
             }
             delete options.file
             return exec('POST', '/records', options, buffer, { 'content-type': 'application/octet-stream' })

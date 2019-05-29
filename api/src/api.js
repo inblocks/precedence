@@ -12,8 +12,7 @@ const {
   BlockNotFoundError,
   ChainNotFoundError,
   UnsupportedMediaTypeError,
-  RequestEntityTooLargeError,
-  MismatchError
+  RequestEntityTooLargeError
 } = require('./errors')
 
 const defaults = {
@@ -32,7 +31,7 @@ const error = {
   'API.ChainNotFoundError': [404, 7],
   'API.UnsupportedMediaTypeError': [415, 8],
   'API.RequestEntityTooLargeError': [413, 9],
-  'API.MismatchError': [400, 10]
+  'CORE.HashMismatchedDataError': [400, 11]
 }
 
 const api = fn => async (req, res) => {
@@ -150,19 +149,21 @@ require('../../common/src/').run('precedence-api', {
       return result
     }))
     app.post('/records', require('body-parser').raw({
-      type: 'application/octet-stream',
-      limit: options.limit || defaults.limit
+      type: () => true,
+      limit: options.limit || defaults.limit,
+      verify: (req, res, buf) => {
+        const type = req.headers['content-type'] && req.headers['content-type'].toLowerCase()
+        if (!type || type !== 'application/octet-stream') {
+          throw new UnsupportedMediaTypeError()
+        }
+        req.body = buf
+      }
     }), api(async (req, res) => {
-      if (req.headers['content-type'] && req.headers['content-type'].toLowerCase() !== 'application/octet-stream') {
-        throw new UnsupportedMediaTypeError()
-      }
-      const hash = sha256(Buffer.isBuffer(req.body) ? req.body : Buffer.from([]))
-      if (req.query.hash && req.query.hash !== hash) {
-        throw new MismatchError(req.query.hash, hash)
-      }
+      req.body = Buffer.isBuffer(req.body) ? req.body : undefined // https://github.com/expressjs/body-parser/issues/89
       return precedence.createRecords([{
         id: req.query.id,
-        data: req.body,
+        hash: req.query.hash,
+        data: !req.query.hash && !req.body ? Buffer.from([]) : req.body,
         chains: Array.isArray(req.query.chain) ? req.query.chain : (req.query.chain && [req.query.chain]),
         previous: Array.isArray(req.query.previous) ? req.query.previous : (req.query.previous && [req.query.previous]),
         store: req.query.store === 'true'

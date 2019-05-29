@@ -25,9 +25,16 @@ class RecordNotFoundError extends PrecedenceError {
   }
 }
 
+class HashMismatchedDataError extends PrecedenceError {
+  constructor (provided, computed) {
+    super('CORE.HashMismatchedDataError', `Provided SHA-256 hexadecimal string "${provided}" mismatches "${computed}"`)
+  }
+}
+
 module.exports = {
   PrecedenceError,
   ConflictError,
   RecordAlreadyExistsError,
-  RecordNotFoundError
+  RecordNotFoundError,
+  HashMismatchedDataError
 }

@@ -1,6 +1,6 @@
 const util = require('util')
 
-const { RecordAlreadyExistsError, RecordNotFoundError } = require('./errors')
+const { RecordAlreadyExistsError, RecordNotFoundError, HashMismatchedDataError } = require('./errors')
 const { random, sortObject, sha256 } = require('./utils')
 const { getNewRedisClient, getTime, execOperations } = require('./redis')
 
@@ -50,18 +50,27 @@ const createRecords = async (redis, records, preExec) => {
       if (await redis.exists(key)) {
         throw new RecordAlreadyExistsError(id)
       }
-      const seed = random(32)
       const recordInfo = {
-        provable: { seed: sha256(seed), id },
-        seed,
-        hash: null,
+        provable: null,
+        seed: random(32),
+        hash: record.data ? sha256(record.data) : record.hash,
         timestamp
+      }
+      if (!recordInfo.hash) {
+        throw new Error('data and or hash must be provided')
+      }
+      if (record.hash && (record.hash !== recordInfo.hash)) {
+        throw new HashMismatchedDataError(record.hash, recordInfo.hash)
+      }
+      recordInfo.provable = {
+        seed: sha256(recordInfo.seed),
+        id,
+        data: sha256(`${recordInfo.seed} ${recordInfo.hash}`)
       }
       if (record.store === true) {
         operations.push(['set', util.format(recordDataKeyFormat, id), record.data])
         recordInfo.data = record.data.length
       }
-      recordInfo.provable.data = sha256(`${seed} ${sha256(record.data)}`)
       const chains = {}
       const previous = {}
       if (record.chains) {
@@ -77,7 +86,7 @@ const createRecords = async (redis, records, preExec) => {
       }
       recordInfo.chains = sortObject(chains)
       recordInfo.provable.chains = Object.entries(recordInfo.chains).reduce((r, [k, v]) => {
-        r[sha256(`${seed} ${k}`)] = v
+        r[sha256(`${recordInfo.seed} ${k}`)] = v
         return r
       }, {})
       if (record.previous) {
@@ -90,13 +99,12 @@ const createRecords = async (redis, records, preExec) => {
         }
       }
       recordInfo.provable.previous = Object.keys(previous).sort()
-      recordInfo.hash = sha256(JSON.stringify(recordInfo.provable))
       const result = recordResponse(recordInfo, record.store === true && record.data)
       operations.push(
         [
           'xadd', recordStream, '*',
           'key', id,
-          'value', recordInfo.hash
+          'value', sha256(JSON.stringify(recordInfo.provable))
         ],
         getSetRecordInfoOperation(recordInfo)
       )
