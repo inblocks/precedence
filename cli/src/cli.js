@@ -75,9 +75,14 @@ cli.run('precedence', {
         },
         get: {
           _description: `Get a block by its index (number) or its root hash (SHA-256 hexadecimal string).
-If you do not provide any argument, you will get the last block.`,
+If you do not provide any argument, you will get the pending block.`,
           _parameters: { 'INDEX|ROOT': false },
-          _exec: (command, definitions, args) => exec('GET', `/blocks${args ? `/${args[0]}` : ''}`)
+          _options: [{
+            name: 'records',
+            type: Boolean,
+            description: `To retrieve the record identifiers, ordered by their timestamp`
+          }],
+          _exec: (command, definitions, args, options) => exec('GET', `/blocks${args ? `/${args[0]}` : ''}`, options)
         }
       }
     },
@@ -116,7 +121,7 @@ You can specify the SHA-256 hexadecimal string to make sure that {bold.italic pr
 
 You can specify chain names to implicitly consider the last record identifier of each chain as a previous record without having to specify them explicitly using the previous parameter.
 
-You can explicitely set the previous record(s) of the record you are creating (by using their identifiers).`,
+You can explicitly set the previous record(s) of the record you are creating (by using their identifier).`,
           _parameters: { DATA: false },
           _options: [{
             alias: 'c',

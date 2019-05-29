@@ -20,7 +20,8 @@ const blockResponse = (block) => {
     index: block.index,
     timestamp: block.timestamp,
     count: block.count,
-    previous: block.previous
+    previous: block.previous,
+    records: block.records
   }
 }
 
@@ -147,10 +148,10 @@ const getProof = async (redis, timestamp, key) => {
     index: block.index,
     proof: await prove(
       new Trie(Levelup(Redisdown(block.location), {
-        host: redis.options.host,
-        port: redis.options.port
-      }),
-      Buffer.from(block.root, 'hex')
+          host: redis.options.host,
+          port: redis.options.port
+        }),
+        Buffer.from(block.root, 'hex')
       ),
       block.root,
       key
@@ -158,10 +159,11 @@ const getProof = async (redis, timestamp, key) => {
   }
 }
 
-const getBlock = async (redis, id = null) => {
-  let blockLedgerStreamId
+const getBlock = async (redis, id = null, records = false) => {
+  let block = null
   if (id) {
-    if (id.match(/^[a-z0-9]{64}$/)) {
+    let blockLedgerStreamId
+    if (id.toString().match(/^[a-z0-9]{64}$/)) {
       blockLedgerStreamId = await redis.get(util.format(blockLedgerIdByRootKeyFormat, id))
     } else {
       blockLedgerStreamId = await redis.get(util.format(blockLedgerIdByIndexKeyFormat, id))
@@ -169,10 +171,26 @@ const getBlock = async (redis, id = null) => {
     if (!blockLedgerStreamId) {
       return null
     }
+    block = await getBlockInfo(redis, blockLedgerStreamId)
+  } else {
+    const last = await getLastBlockInfo(redis)
+    if (last) {
+      block = {
+        index: last.index + 1,
+        previous: {
+          root: last.root,
+          timestamp: last.timestamp
+        }
+      }
+    } else {
+      block = {
+        index: 1
+      }
+    }
   }
-  const block = await (blockLedgerStreamId ? getBlockInfo(redis, blockLedgerStreamId) : getLastBlockInfo(redis))
-  if (!block) {
-    return null
+  if (records) {
+    const previousTimestamp = block.index > 1 && (await getBlock(redis, block.index - 1)).timestamp
+    block.records = (await redis.xrange(recordStream, previousTimestamp || '-', block.timestamp ? block.timestamp : '+')).map(o => o[1][1])
   }
   return blockResponse(block)
 }

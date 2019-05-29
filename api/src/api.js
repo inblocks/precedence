@@ -3,7 +3,6 @@
 const createError = require('http-errors')
 
 const precedenceDefaults = require('../../core/src/defaults')
-const sha256 = require('../../core/src/utils').sha256
 
 const {
   PrecedenceError,
@@ -126,7 +125,7 @@ require('../../common/src/').run('precedence-api', {
     const precedence = require('../../core/src')(options)
 
     const getBlock = () => api(async req => {
-      const result = await precedence.getBlock(req.params.id)
+      const result = await precedence.getBlock(req.params.id, req.query.records === 'true')
       if (!result) {
         if (!req.params.id) {
           return null
@@ -195,8 +194,8 @@ require('../../common/src/').run('precedence-api', {
       return result
     }))
 
-    app.get('/blocks', getBlock()) //     get latest
-    app.get('/blocks/:id', getBlock()) // get by root or index
+    app.get('/blocks', getBlock()) // get pending block
+    app.get('/blocks/:id', getBlock()) // get a block by its root/index
     app.post('/blocks', api((req, res) => {
       const empty = req.query['no-empty'] !== 'true'
       const max = req.query.max && Number(req.query.max)

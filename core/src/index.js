@@ -46,7 +46,7 @@ module.exports = (options = defaults) => {
 
   const deleteChain = (id, data = false) => record.deleteChain(redisReadOnly, id, data)
 
-  const getBlock = (id = null) => blocks.getBlock(redisReadOnly, id)
+  const getBlock = (id = null, records = false) => blocks.getBlock(redisReadOnly, id, records)
 
   const createBlock = async (empty = defaults.block.empty, max = defaults.block.max) => {
     const block = await blocks.createBlock(redisReadOnly, empty, max)
