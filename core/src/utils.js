@@ -1,13 +1,13 @@
-const crypto = require('crypto')
+const {randomBytes, createHash} = require('crypto')
 
-const { ecsign, keccak256, toRpcSig, fromRpcSig, publicToAddress, ecrecover } = require('ethereumjs-util')
+const {ecsign, keccak256, toRpcSig, fromRpcSig, publicToAddress, ecrecover} = require('ethereumjs-util')
 
 const random = size => {
-  return crypto.randomBytes(size).toString('hex')
+  return randomBytes(size).toString('hex')
 }
 
 const sha256 = value => {
-  return crypto.createHash('sha256').update(value).digest('hex')
+  return createHash('sha256').update(value).digest('hex')
 }
 
 const sortObject = object => Object.keys(object).sort().reduce((r, k) => {

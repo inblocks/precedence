@@ -1,6 +1,6 @@
 FROM node:10-alpine as build
 RUN apk add python build-base
-WORKDIR /app
+WORKDIR /precedence
 
 
 
@@ -33,17 +33,17 @@ ENV PRECEDENCE_API ""
 
 EXPOSE 9000
 
-WORKDIR /app
+WORKDIR /precedence
 
 COPY entrypoint.sh .
 RUN chmod 755 entrypoint.sh
-ENTRYPOINT ["/app/entrypoint.sh"]
+ENTRYPOINT ["/precedence/entrypoint.sh"]
 
-COPY --from=common /app common
-COPY --from=cli /app cli
+COPY --from=common /precedence common
+COPY --from=cli /precedence cli
 RUN cd cli && npm link
-COPY --from=api /app api
+COPY --from=api /precedence api
 RUN cd api && npm link
-COPY --from=core /app core
+COPY --from=core /precedence core
 
 WORKDIR /root

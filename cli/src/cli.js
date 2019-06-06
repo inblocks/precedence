@@ -22,6 +22,7 @@ const exec = async (method, url, params, data, headers) => {
           return v != null && [`${k}=${v}`]
         }
       }).reduce((r, a) => r.concat(a), []).join('&'),
+      maxContentLength: Infinity,
       method,
       url,
       params,

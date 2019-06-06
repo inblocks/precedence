@@ -1,4 +1,3 @@
-const crypto = require('crypto')
 const util = require('util')
 
 const Trie = require('merkle-patricia-tree')
@@ -7,6 +6,7 @@ const Redisdown = require('redisdown')
 
 const { ConcurrentError } = require('./errors')
 const { getNextStreamId, objectify, getNewRedisClient, execOperations } = require('./redis')
+const { random } = require('./utils')
 
 const recordStream = 'record.stream'
 const blockStream = 'block.stream'
@@ -48,7 +48,7 @@ const getLastTodoStreamId = async (redis) => {
 
 const getNewBlock = async (redis) => {
   const previousBlock = await getLastBlockInfo(redis)
-  let index = 1
+  let index = 0
   let previous = null
   let streamId = null
   if (previousBlock) {
@@ -56,7 +56,7 @@ const getNewBlock = async (redis) => {
     previous = previousBlock.root
     streamId = previousBlock.streamId
   }
-  const location = crypto.randomBytes(32).toString('hex')
+  const location = random(32)
   const blockPendingStreamId = await redis.xadd(blockPendingStream, '*', 'index', index, 'location', location)
   return {
     index,
@@ -75,7 +75,7 @@ const getNewBlock = async (redis) => {
 
 const cleanBlocks = (redis) => {
   return new Promise((resolve, reject) => {
-    setTimeout(async function clean () {
+    setTimeout(async function clean() {
       try {
         const results = await redis.xrange(blockPendingStream, '0', '+', 'COUNT', '1')
         if (results.length === 0) {
@@ -184,12 +184,12 @@ const getBlock = async (redis, id = null, records = false) => {
       }
     } else {
       block = {
-        index: 1
+        index: 0
       }
     }
   }
   if (records) {
-    const previousTimestamp = block.index > 1 && (await getBlock(redis, block.index - 1)).timestamp
+    const previousTimestamp = block.index > 0 && (await getBlock(redis, block.index - 1)).timestamp
     block.records = (await redis.xrange(recordStream, previousTimestamp || '-', block.timestamp ? block.timestamp : '+')).map(o => o[1][1])
   }
   return blockResponse(block)
@@ -206,7 +206,7 @@ const createBlock = async (redis, empty, max) => {
     await redis.watch(blockStream)
     const block = await getNewBlock(redis)
     end !== null && max !== 0 && await new Promise((resolve, reject) => {
-      setTimeout(async function run () {
+      setTimeout(async function run() {
         try {
           const countArgs = max >= 0 ? ['COUNT', Math.min(max - block.count, 1000)] : []
           const results = await redis.xrange(recordStream, getNextStreamId(block.streamId), end, ...countArgs)
@@ -248,9 +248,18 @@ const createBlock = async (redis, empty, max) => {
     if (block.count === 0 && !empty) {
       return null
     }
-    const streamId = block.count > 0 ? block.streamId : getNextStreamId(block.streamId)
+    let streamId = block.streamId
+    let key = 'previous'
+    let value = block.previous
+    if (block.count === 0) {
+      streamId = getNextStreamId(block.streamId)
+    }
+    if (block.index === 0) {
+      key = 'seed'
+      value = random(32)
+    }
     await new Promise((resolve, reject) => {
-      block.trie.put('previous', block.previous, e => {
+      block.trie.put(key, value, e => {
         try {
           if (e) {
             return reject(e)
@@ -269,7 +278,7 @@ const createBlock = async (redis, empty, max) => {
       timestamp: block.timestamp,
       count: block.count,
       root: root,
-      previous: block.index === 1 ? null : {
+      previous: block.index === 0 ? null : {
         root: block.previous,
         proof: await prove(block.trie, root, 'previous')
       }

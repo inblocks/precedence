@@ -9,6 +9,10 @@ const chainKeyFormat = 'chain.%s'
 const recordInfoKeyFormat = 'record.info.%s'
 const recordDataKeyFormat = 'record.data.%s'
 
+const obfuscate = (seed, value) => {
+  return sha256(`${seed} ${value}`)
+}
+
 const recordResponse = (recordInfo, data) => {
   const result = Object.assign({}, recordInfo)
   delete result.data
@@ -63,9 +67,9 @@ const createRecords = async (redis, records, preExec) => {
         throw new HashMismatchedDataError(record.hash, recordInfo.hash)
       }
       recordInfo.provable = {
-        seed: sha256(recordInfo.seed),
+        seed: obfuscate(recordInfo.seed, recordInfo.seed),
         id,
-        data: sha256(`${recordInfo.seed} ${recordInfo.hash}`)
+        data: obfuscate(recordInfo.seed, recordInfo.hash)
       }
       if (record.store === true) {
         operations.push(['set', util.format(recordDataKeyFormat, id), record.data])
@@ -86,7 +90,7 @@ const createRecords = async (redis, records, preExec) => {
       }
       recordInfo.chains = sortObject(chains)
       recordInfo.provable.chains = Object.entries(recordInfo.chains).reduce((r, [k, v]) => {
-        r[sha256(`${recordInfo.seed} ${k}`)] = v
+        r[obfuscate(recordInfo.seed, k)] = v
         return r
       }, {})
       if (record.previous) {
