@@ -161,7 +161,7 @@ const getProof = async (redis, timestamp, key) => {
 
 const getBlock = async (redis, id = null, records = false) => {
   let block = null
-  if (id) {
+  if (id != null) {
     let blockLedgerStreamId
     if (id.toString().match(/^[a-z0-9]{64}$/)) {
       blockLedgerStreamId = await redis.get(util.format(blockLedgerIdByRootKeyFormat, id))
