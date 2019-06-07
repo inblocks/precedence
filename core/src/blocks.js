@@ -14,6 +14,9 @@ const blockPendingStream = 'block.pending.stream'
 const blockLedgerIdByIndexKeyFormat = 'block.index.%s'
 const blockLedgerIdByRootKeyFormat = 'block.root.%s'
 
+const previousKey = 'previous'
+const seedKey = 'seed'
+
 const blockResponse = (block) => {
   return block && {
     root: block.root,
@@ -154,7 +157,7 @@ const getProof = async (redis, timestamp, key) => {
         Buffer.from(block.root, 'hex')
       ),
       block.root,
-      key
+      Buffer.from(key, 'hex')
     )
   }
 }
@@ -214,7 +217,7 @@ const createBlock = async (redis, empty, max) => {
             const streamId = result[0]
             const object = objectify(result[1])
             await new Promise((resolve, reject) => {
-              block.trie.put(object.key, object.value, e => {
+              block.trie.put(Buffer.from(object.key, 'hex'), Buffer.from(object.value, 'hex'), e => {
                 try {
                   if (e) {
                     return reject(e)
@@ -249,17 +252,17 @@ const createBlock = async (redis, empty, max) => {
       return null
     }
     let streamId = block.streamId
-    let key = 'previous'
+    let key = previousKey
     let value = block.previous
     if (block.count === 0) {
       streamId = getNextStreamId(block.streamId)
     }
     if (block.index === 0) {
-      key = 'seed'
+      key = seedKey
       value = random(32)
     }
     await new Promise((resolve, reject) => {
-      block.trie.put(key, value, e => {
+      block.trie.put(key, Buffer.from(value, 'hex'), e => {
         try {
           if (e) {
             return reject(e)
@@ -280,7 +283,7 @@ const createBlock = async (redis, empty, max) => {
       root: root,
       previous: block.index === 0 ? null : {
         root: block.previous,
-        proof: await prove(block.trie, root, 'previous')
+        proof: await prove(block.trie, root, previousKey)
       }
     }
     await execOperations(redis, [
