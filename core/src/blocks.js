@@ -148,7 +148,7 @@ const getProof = async (redis, timestamp, key) => {
     return null
   }
   return {
-    index: block.index,
+    root: block.root,
     proof: await prove(
       new Trie(
         Levelup(Redisdown(block.location), {
