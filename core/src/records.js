@@ -48,11 +48,10 @@ const createRecords = async (redis, records, preExec) => {
     const local = { chain: {}, record: {} }
     const results = []
     for (const record of records) {
-      const id = record.id ? sha256(record.id) : random(32)
-      const key = util.format(recordInfoKeyFormat, id)
+      const key = util.format(recordInfoKeyFormat, record.id)
       await redis.watch(key)
       if (await redis.exists(key)) {
-        throw new RecordAlreadyExistsError(id)
+        throw new RecordAlreadyExistsError(record.id)
       }
       const recordInfo = {
         provable: null,
@@ -68,11 +67,11 @@ const createRecords = async (redis, records, preExec) => {
       }
       recordInfo.provable = {
         seed: obfuscate(recordInfo.seed, recordInfo.seed),
-        id,
+        id: record.id,
         data: obfuscate(recordInfo.seed, recordInfo.hash)
       }
       if (record.store === true) {
-        operations.push(['set', util.format(recordDataKeyFormat, id), record.data])
+        operations.push(['set', util.format(recordDataKeyFormat, record.id), record.data])
         recordInfo.data = record.data.length
       }
       const chains = {}
@@ -81,7 +80,7 @@ const createRecords = async (redis, records, preExec) => {
         for (const chain of record.chains) {
           await redis.watch(chain)
           const last = local.chain[chain] ? local.chain[chain].id : await getLastRecordId(redis, chain)
-          local.chain[chain] = id
+          local.chain[chain] = record.id
           chains[chain] = last
           if (last) {
             previous[last] = true
@@ -107,12 +106,12 @@ const createRecords = async (redis, records, preExec) => {
       operations.push(
         [
           'xadd', recordStream, '*',
-          'key', id,
+          'key', record.id,
           'value', sha256(JSON.stringify(recordInfo.provable))
         ],
         getSetRecordInfoOperation(recordInfo)
       )
-      local.record[id] = true
+      local.record[record.id] = true
       results.push(result)
     }
     Object.entries(local.chain).forEach(([chain, id]) => {

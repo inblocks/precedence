@@ -78,7 +78,7 @@ const getNewBlock = async (redis) => {
 
 const cleanBlocks = (redis) => {
   return new Promise((resolve, reject) => {
-    setTimeout(async function clean() {
+    setTimeout(async function clean () {
       try {
         const results = await redis.xrange(blockPendingStream, '0', '+', 'COUNT', '1')
         if (results.length === 0) {
@@ -150,7 +150,8 @@ const getProof = async (redis, timestamp, key) => {
   return {
     index: block.index,
     proof: await prove(
-      new Trie(Levelup(Redisdown(block.location), {
+      new Trie(
+        Levelup(Redisdown(block.location), {
           host: redis.options.host,
           port: redis.options.port
         }),
@@ -209,7 +210,7 @@ const createBlock = async (redis, empty, max) => {
     await redis.watch(blockStream)
     const block = await getNewBlock(redis)
     end !== null && max !== 0 && await new Promise((resolve, reject) => {
-      setTimeout(async function run() {
+      setTimeout(async function run () {
         try {
           const countArgs = max >= 0 ? ['COUNT', Math.min(max - block.count, 1000)] : []
           const results = await redis.xrange(recordStream, getNextStreamId(block.streamId), end, ...countArgs)

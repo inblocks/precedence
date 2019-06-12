@@ -1,6 +1,6 @@
-const {randomBytes, createHash} = require('crypto')
+const { randomBytes, createHash } = require('crypto')
 
-const {ecsign, keccak256, toRpcSig, fromRpcSig, publicToAddress, ecrecover} = require('ethereumjs-util')
+const { ecsign, keccak256, toRpcSig, fromRpcSig, publicToAddress, ecrecover } = require('ethereumjs-util')
 
 const random = size => {
   return randomBytes(size).toString('hex')

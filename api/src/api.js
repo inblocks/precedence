@@ -3,6 +3,7 @@
 const createError = require('http-errors')
 
 const precedenceDefaults = require('../../core/src/defaults')
+const { random, sha256 } = require('../../core/src/utils')
 
 const {
   PrecedenceError,
@@ -160,7 +161,7 @@ require('../../common/src/').run('precedence-api', {
     }), api(async (req, res) => {
       req.body = Buffer.isBuffer(req.body) ? req.body : undefined // https://github.com/expressjs/body-parser/issues/89
       return precedence.createRecords([{
-        id: req.query.id,
+        id: req.query.id ? sha256(req.query.id) : random(32),
         hash: req.query.hash,
         data: !req.query.hash && !req.body ? Buffer.from([]) : req.body,
         chains: Array.isArray(req.query.chain) ? req.query.chain : (req.query.chain && [req.query.chain]),
