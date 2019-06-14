@@ -68,7 +68,7 @@ const createRecords = async (redis, records, preExec) => {
       recordInfo.provable = {
         seed: obfuscate(recordInfo.seed, recordInfo.seed),
         id: record.id,
-        data: obfuscate(recordInfo.seed, recordInfo.hash)
+        hash: obfuscate(recordInfo.seed, recordInfo.hash)
       }
       if (record.store === true) {
         operations.push(['set', util.format(recordDataKeyFormat, record.id), record.data])
