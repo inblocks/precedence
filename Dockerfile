@@ -28,22 +28,31 @@ COPY core/src ./src
 
 FROM node:10-alpine
 
+WORKDIR /precedence
+
 ENV NODE_ENV=production
 ENV PRECEDENCE_API ""
 
 EXPOSE 9000
 
-WORKDIR /precedence
-
 COPY entrypoint.sh .
 RUN chmod 755 entrypoint.sh
 ENTRYPOINT ["/precedence/entrypoint.sh"]
 
-COPY --from=common /precedence common
-COPY --from=cli /precedence cli
-RUN cd cli && npm link
-COPY --from=api /precedence api
-RUN cd api && npm link
-COPY --from=core /precedence core
+COPY --from=common /precedence/node_modules common/node_modules
+COPY --from=common /precedence/package* common/
+COPY --from=common /precedence/src common/src
 
-WORKDIR /root
+COPY --from=cli /precedence/node_modules cli/node_modules
+COPY --from=cli /precedence/package* cli/
+COPY --from=cli /precedence/src cli/src
+RUN cd cli && npm link
+
+COPY --from=api /precedence/node_modules api/node_modules
+COPY --from=api /precedence/package* api/
+COPY --from=api /precedence/src api/src
+RUN cd api && npm link
+
+COPY --from=core /precedence/node_modules core/node_modules
+COPY --from=core /precedence/package* core/
+COPY --from=core /precedence/src core/src
