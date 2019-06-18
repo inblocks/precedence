@@ -106,7 +106,7 @@ const createRecords = async (redis, records, preExec) => {
       operations.push(
         [
           'xadd', recordStream, '*',
-          'key', record.id,
+          'key', record.id.match(/^[0-9a-f]*$/i) && record.id.length % 2 === 0 ? record.id : Buffer.from(record.id, 'utf8').toString('hex'),
           'value', sha256(JSON.stringify(recordInfo.provable))
         ],
         getSetRecordInfoOperation(recordInfo)

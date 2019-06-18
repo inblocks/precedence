@@ -158,7 +158,7 @@ const getProof = async (redis, timestamp, key) => {
         Buffer.from(block.root, 'hex')
       ),
       block.root,
-      Buffer.from(key, 'hex')
+      key
     )
   }
 }
