@@ -2,10 +2,8 @@
   "name": "@precedence/core",
   "private": true,
   "dependencies": {
-    "axios": "^0.18.1",
-    "ethereumjs-util": "^6.1.0",
-    "ioredis": "^4.9.5",
-    "levelup": "^4.0.1",
+    "ioredis": "^4.10.0",
+    "levelup": "^4.0.2",
     "merkle-patricia-tree": "^3.0.0",
     "redisdown": "^0.1.12"
   }

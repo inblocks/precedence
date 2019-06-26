@@ -3,7 +3,8 @@
 const createError = require('http-errors')
 
 const precedenceDefaults = require('../../core/src/defaults')
-const { random, sha256 } = require('../../core/src/utils')
+const { sign } = require('../../common/src/signature')
+const { random, sha256 } = require('../../common/src/utils')
 
 const {
   PrecedenceError,
@@ -16,7 +17,7 @@ const {
 } = require('./errors')
 
 const defaults = {
-  limit: 1000000,
+  limit: 500000000,
   port: 9000
 }
 
@@ -31,7 +32,8 @@ const error = {
   'API.ChainNotFoundError': [404, 7],
   'API.UnsupportedMediaTypeError': [415, 8],
   'API.RequestEntityTooLargeError': [413, 9],
-  'CORE.HashMismatchedDataError': [400, 11]
+  'CORE.HashMismatchedDataError': [400, 11],
+  'CORE.InvalidSignatureError': [400, 12]
 }
 
 const api = fn => async (req, res) => {
@@ -71,13 +73,33 @@ const api = fn => async (req, res) => {
 
 const log = (string) => console.log(`LOG    - ${new Date().toISOString()} - ${string}`)
 
-require('../../common/src/').run('precedence-api', {
+const getNodeAddress = () => {
+  if (!process.env.PRECEDENCE_PRIVATE_KEY) {
+    console.error('ERROR: The environment variable PRECEDENCE_PRIVATE_KEY must be defined')
+    process.exit(1)
+  } else {
+    try {
+      return require('../../common/src/signature').privateToAddress(process.env.PRECEDENCE_PRIVATE_KEY)
+    } catch (e) {
+      console.error('ERROR: PRECEDENCE_PRIVATE_KEY must match [0-9a-zA-Z]{64}')
+      process.exit(1)
+    }
+  }
+}
+
+require('../../common/src/cli').run('precedence-api', {
   _help: sections => {
     sections.splice(0, 0, {
       content: [
         'Welcome in the {bold.italic precedence} REST API.',
         'Visit "https://github.com/inblocks/precedence" to know more about {bold.italic precedence}.'
       ]
+    }, {
+      header: 'Environment variables',
+      content: [{
+        name: 'PRECEDENCE_PRIVATE_KEY',
+        description: `Set the ECDSA private key to sign webhooks and records (if not already done by the client)`
+      }]
     })
     return sections
   },
@@ -119,6 +141,8 @@ require('../../common/src/').run('precedence-api', {
     lazyMultiple: true
   }],
   _exec: (command, definitions, args, options) => {
+    const nodeAddress = getNodeAddress()
+    log(`node address: ${nodeAddress}`)
     log(JSON.stringify(options, null, 2))
     options.webhooks = options.webhook
     delete options.webhook
@@ -160,13 +184,19 @@ require('../../common/src/').run('precedence-api', {
       }
     }), api(async (req, res) => {
       req.body = Buffer.isBuffer(req.body) ? req.body : undefined // https://github.com/expressjs/body-parser/issues/89
+      const data = !req.query.hash && !req.body ? Buffer.from([]) : req.body
+      const [address, signature] = req.headers['precedence-address'] && req.headers['precedence-signature']
+        ? [req.headers['precedence-address'], req.headers['precedence-signature']]
+        : [nodeAddress, sign(req.query.hash || sha256(data), process.env.PRECEDENCE_PRIVATE_KEY)]
       return precedence.createRecords([{
         id: req.query.id ? sha256(req.query.id) : random(32),
         hash: req.query.hash,
-        data: !req.query.hash && !req.body ? Buffer.from([]) : req.body,
+        data,
         chains: Array.isArray(req.query.chain) ? req.query.chain : (req.query.chain && [req.query.chain]),
         previous: Array.isArray(req.query.previous) ? req.query.previous : (req.query.previous && [req.query.previous]),
-        store: req.query.store === 'true'
+        store: req.query.store === 'true',
+        address,
+        signature
       }]).then(result => {
         res.status(201)
         return result[0]

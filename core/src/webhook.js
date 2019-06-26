@@ -1,5 +1,7 @@
+const request = require('../../common/src/request')(require('../package.json'))
+
 const { objectify } = require('./redis')
-const { random, sign } = require('./utils')
+const { random } = require('../../common/src/utils')
 
 const count = 10
 const webhookStream = 'webhook.stream'
@@ -35,26 +37,12 @@ module.exports = (redisReadOnly, urls) => {
           }
           delete blacklist[object.url]
           try {
-            const data = JSON.stringify({
+            const response = await request('POST', object.url, null, Buffer.from(JSON.stringify({
               timestamp,
               id: object.id,
               type: object.type,
               data: JSON.parse(object.data)
-            })
-            const headers = {
-              'content-type': 'application/json; charset=utf-8',
-              'user-agent': `precedence/${require('../package.json').version}`
-            }
-            if (process.env.PRECEDENCE_PRIVATE_KEY) {
-              headers['precedence-signature'] = sign(data, process.env.PRECEDENCE_PRIVATE_KEY)
-            }
-            const response = await require('axios').request({
-              method: 'post',
-              timeout: 10000,
-              headers,
-              url: object.url,
-              data
-            })
+            }), 'utf8'))
             const message = `"${response.status} ${response.statusText}" ${log}`
             if (response.status === 200) {
               console.log(`WEBHOOK INFO ${message}`)

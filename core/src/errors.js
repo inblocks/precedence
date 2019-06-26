@@ -31,10 +31,17 @@ class HashMismatchedDataError extends PrecedenceError {
   }
 }
 
+class InvalidSignatureError extends PrecedenceError {
+  constructor (signature, address, data) {
+    super('CORE.InvalidSignatureError', `Invalid signature`, { signature, address, data })
+  }
+}
+
 module.exports = {
   PrecedenceError,
   ConflictError,
   RecordAlreadyExistsError,
   RecordNotFoundError,
-  HashMismatchedDataError
+  HashMismatchedDataError,
+  InvalidSignatureError
 }

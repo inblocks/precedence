@@ -6,6 +6,6 @@
     "precedence": "./src/cli.js"
   },
   "dependencies": {
-    "axios": "^0.18.1"
+    "debug": "^4.1.1"
   }
 }

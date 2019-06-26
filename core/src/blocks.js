@@ -6,7 +6,7 @@ const Redisdown = require('redisdown')
 
 const { ConcurrentError } = require('./errors')
 const { getNextStreamId, objectify, getNewRedisClient, execOperations } = require('./redis')
-const { random } = require('./utils')
+const { random } = require('../../common/src/utils')
 
 const recordStream = 'record.stream'
 const blockStream = 'block.stream'

@@ -1,8 +1,14 @@
 const util = require('util')
 
-const { RecordAlreadyExistsError, RecordNotFoundError, HashMismatchedDataError } = require('./errors')
-const { random, sortObject, sha256 } = require('./utils')
+const {
+  RecordAlreadyExistsError,
+  RecordNotFoundError,
+  HashMismatchedDataError,
+  InvalidSignatureError
+} = require('./errors')
+const { random, sortObject, sha256 } = require('../../common/src/utils')
 const { getNewRedisClient, getTime, execOperations } = require('./redis')
+const { recover } = require('../../common/src/signature')
 
 const recordStream = 'record.stream'
 const chainKeyFormat = 'chain.%s'
@@ -43,51 +49,67 @@ const getLastRecordId = (redis, chain) => redis.get(util.format(chainKeyFormat, 
 const createRecords = async (redis, records, preExec) => {
   redis = getNewRedisClient(redis)
   try {
-    const timestamp = await getTime(redis)
     const operations = []
     const local = { chain: {}, record: {} }
     const results = []
     for (const record of records) {
-      const key = util.format(recordInfoKeyFormat, record.id)
-      await redis.watch(key)
-      if (await redis.exists(key)) {
-        throw new RecordAlreadyExistsError(record.id)
+      if (!record.hash && !record.data) {
+        throw new Error('data and or hash must be provided')
+      }
+      {
+        const key = util.format(recordInfoKeyFormat, record.id)
+        await redis.watch(key)
+        if (await redis.exists(key)) {
+          throw new RecordAlreadyExistsError(record.id)
+        }
       }
       const recordInfo = {
         provable: null,
+        timestamp: await getTime(redis),
         seed: random(32),
         hash: record.data ? sha256(record.data) : record.hash,
-        timestamp
-      }
-      if (!recordInfo.hash) {
-        throw new Error('data and or hash must be provided')
+        address: record.address,
+        signature: record.signature,
+        chains: {}
       }
       if (record.hash && (record.hash !== recordInfo.hash)) {
         throw new HashMismatchedDataError(record.hash, recordInfo.hash)
       }
+      {
+        let ok = false
+        try {
+          ok = recover(recordInfo.hash, record.signature) === (record.address || '').toLowerCase()
+        } catch (e) {
+          // nothing to do
+        }
+        if (!ok) {
+          throw new InvalidSignatureError(record.signature, record.address, recordInfo.hash)
+        }
+      }
       recordInfo.provable = {
-        seed: obfuscate(recordInfo.seed, recordInfo.seed),
         id: record.id,
-        hash: obfuscate(recordInfo.seed, recordInfo.hash)
+        seed: obfuscate(recordInfo.seed, recordInfo.seed),
+        hash: obfuscate(recordInfo.seed, recordInfo.hash),
+        address: obfuscate(recordInfo.seed, recordInfo.address),
+        signature: obfuscate(recordInfo.seed, recordInfo.signature)
       }
       if (record.store === true) {
         operations.push(['set', util.format(recordDataKeyFormat, record.id), record.data])
         recordInfo.data = record.data.length
       }
-      const chains = {}
       const previous = {}
       if (record.chains) {
         for (const chain of record.chains) {
           await redis.watch(chain)
           const last = local.chain[chain] ? local.chain[chain].id : await getLastRecordId(redis, chain)
           local.chain[chain] = record.id
-          chains[chain] = last
+          recordInfo.chains[chain] = last
           if (last) {
             previous[last] = true
           }
         }
       }
-      recordInfo.chains = sortObject(chains)
+      recordInfo.chains = sortObject(recordInfo.chains)
       recordInfo.provable.chains = Object.entries(recordInfo.chains).reduce((r, [k, v]) => {
         r[obfuscate(recordInfo.seed, k)] = v
         return r

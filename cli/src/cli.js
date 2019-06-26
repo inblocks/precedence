@@ -1,43 +1,32 @@
 #!/usr/bin/env node
 
-const cli = require('../../common/src/')
+const cli = require('../../common/src/cli')
+const request = require('../../common/src/request')(require('../package.json'))
 
 const defaults = {
   api: 'http://localhost:9000'
 }
 
 const exec = async (method, url, params, data, headers) => {
-  let code = 0
+  let response
   try {
-    process.stdout.write(`${JSON.stringify((await await require('axios').request({
-      headers: Object.assign({
-        'user-agent': `precedence/${require('../package.json').version}`,
-        'precedence-key': process.env.PRECEDENCE_KEY || null
-      }, headers || {}),
-      baseURL: process.env.PRECEDENCE_API || defaults.api,
-      paramsSerializer: (params) => Object.entries(params).map(([k, v]) => {
-        if (Array.isArray(v)) {
-          return v.map(v => `${k}=${v}`)
-        } else {
-          return v != null && [`${k}=${v}`]
-        }
-      }).reduce((r, a) => r.concat(a), []).join('&'),
-      maxContentLength: Infinity,
+    response = (await await request(
       method,
-      url,
+      `${process.env.PRECEDENCE_API || defaults.api}${url}`,
       params,
-      data
-    })).data, null, 2)}\n`)
-    code = 0
+      data,
+      headers
+    )).data
   } catch (e) {
     if (e.response) {
-      process.stdout.write(`${JSON.stringify(e.response.data, null, 2)}\n`)
+      response = e.response.data
     } else {
       console.error(`ERROR: ${e.message}`)
-      code = 1
+      return 1
     }
   }
-  return code
+  process.stdout.write(`${JSON.stringify(response, null, 2)}\n`)
+  return 0
 }
 
 cli.run('precedence', {
@@ -50,6 +39,9 @@ cli.run('precedence', {
     }, {
       header: 'Environment variables',
       content: [{
+        name: 'PRECEDENCE_PRIVATE_KEY',
+        description: `Set the ECDSA private key to sign records (otherwise records are signed by the node)`
+      }, {
         name: 'PRECEDENCE_API',
         description: `Set the API base URL (default: "${defaults.api}")`
       }]
@@ -170,8 +162,6 @@ You can explicitly set the previous record(s) of the record you are creating (by
                   resolve(Buffer.concat(chuncks))
                 })
               })
-            } else {
-              buffer = Buffer.from([])
             }
             delete options.file
             return exec('POST', '/records', options, buffer, { 'content-type': 'application/octet-stream' })

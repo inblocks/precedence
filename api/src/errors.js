@@ -3,7 +3,8 @@ const {
   ConflictError,
   RecordAlreadyExistsError,
   RecordNotFoundError,
-  HashMismatchedDataError
+  HashMismatchedDataError,
+  InvalidSignatureError
 } = require('../../core/src/errors')
 
 class RecordDataNotFoundError extends PrecedenceError {
@@ -42,6 +43,7 @@ module.exports = {
   RecordAlreadyExistsError,
   RecordNotFoundError,
   HashMismatchedDataError,
+  InvalidSignatureError,
   RecordDataNotFoundError,
   BlockNotFoundError,
   ChainNotFoundError,
