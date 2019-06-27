@@ -7,6 +7,8 @@ const defaults = {
   api: 'http://localhost:9000'
 }
 
+const out = (object) => process.stdout.write(`${JSON.stringify(object, null, 2)}\n`)
+
 const exec = async (method, url, params, data, headers) => {
   let response
   try {
@@ -25,7 +27,7 @@ const exec = async (method, url, params, data, headers) => {
       return 1
     }
   }
-  process.stdout.write(`${JSON.stringify(response, null, 2)}\n`)
+  out(response)
   return 0
 }
 
@@ -50,6 +52,31 @@ cli.run('precedence', {
   },
   _parameters: { COMMAND: false },
   _commands: {
+    'utils': {
+      _parameters: { COMMAND: false },
+      _commands: {
+        'gen-key-pair': {
+          _parameters: { 'SECRET': false },
+          _description: 'Generate an ECDSA key pair (randomized if SECRET is not defined).',
+          _exec: (command, definitions, args) => {
+            const key = args ? require('../../common/src/utils').sha256(args[0]) : require('../../common/src/utils').random(32)
+            out({
+              PRIVATE_KEY: key,
+              PUBLIC_ADDRESS: require('../../common/src/signature').privateToAddress(key)
+            })
+          }
+        },
+        'private-key-to-address': {
+          _description: `Extract address from ECDSA private key.`,
+          _parameters: { 'KEY': true },
+          _exec: (command, definitions, args) => {
+            out({
+              PUBLIC_ADDRESS: require('../../common/src/signature').privateToAddress(args[0])
+            })
+          }
+        }
+      }
+    },
     blocks: {
       _parameters: { COMMAND: false },
       _commands: {
