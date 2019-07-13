@@ -2,8 +2,8 @@
   "name": "@precedence/core",
   "private": true,
   "dependencies": {
-    "ioredis": "^4.10.0",
-    "levelup": "^4.0.2",
+    "ioredis": "^4.11.1",
+    "levelup": "^4.1.0",
     "merkle-patricia-tree": "^3.0.0",
     "redisdown": "^0.1.12"
   }
