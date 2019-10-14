@@ -31,7 +31,7 @@ const getUsage = (command, definitions) => {
 }
 
 const printUsage = (code, command, definitions, modifier) => {
-  let sections = [{
+  const sections = [{
     raw: true,
     content: `{bold.underline Usage}{bold :}   {bold ${getUsage(command, definitions)}}`
   }]

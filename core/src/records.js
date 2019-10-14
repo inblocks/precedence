@@ -176,7 +176,7 @@ const deleteChain = async (redis, chain, data = false) => {
     } : undefined
   }
   const operations = []
-  let todo = [id]
+  const todo = [id]
   while (todo.length > 0) {
     for (const id of todo.splice(0, todo.length)) {
       const record = await getRecordInfo(redis, id)

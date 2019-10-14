@@ -42,7 +42,7 @@ cli.run('precedence', {
       header: 'Environment variables',
       content: [{
         name: 'PRECEDENCE_PRIVATE_KEY',
-        description: `Set the ECDSA private key to sign records (otherwise records are signed by the node)`
+        description: 'Set the ECDSA private key to sign records (otherwise records are signed by the node)'
       }, {
         name: 'PRECEDENCE_API',
         description: `Set the API base URL (default: "${defaults.api}")`
@@ -52,11 +52,11 @@ cli.run('precedence', {
   },
   _parameters: { COMMAND: false },
   _commands: {
-    'utils': {
+    utils: {
       _parameters: { COMMAND: false },
       _commands: {
         'gen-key-pair': {
-          _parameters: { 'SECRET': false },
+          _parameters: { SECRET: false },
           _description: 'Generate an ECDSA key pair (randomized if SECRET is not defined).',
           _exec: (command, definitions, args) => {
             const key = args ? require('../../common/src/utils').sha256(args[0]) : require('../../common/src/utils').random(32)
@@ -67,8 +67,8 @@ cli.run('precedence', {
           }
         },
         'private-key-to-address': {
-          _description: `Extract address from ECDSA private key.`,
-          _parameters: { 'KEY': true },
+          _description: 'Extract address from ECDSA private key.',
+          _parameters: { KEY: true },
           _exec: (command, definitions, args) => {
             out({
               PUBLIC_ADDRESS: require('../../common/src/signature').privateToAddress(args[0])
@@ -85,7 +85,7 @@ cli.run('precedence', {
           _options: [{
             name: 'no-empty',
             type: Boolean,
-            description: `To prevent the creation of empty blocks`
+            description: 'To prevent the creation of empty blocks'
           }, {
             name: 'max',
             type: Number,
@@ -100,7 +100,7 @@ If you do not provide any argument, you will get the pending block.`,
           _options: [{
             name: 'records',
             type: Boolean,
-            description: `To retrieve the record identifiers, ordered by their timestamp`
+            description: 'To retrieve the record identifiers, ordered by their timestamp'
           }],
           _exec: (command, definitions, args, options) => exec('GET', `/blocks${args ? `/${args[0]}` : ''}`, options)
         }

@@ -23,7 +23,7 @@ const defaults = {
 
 // APPEND ONLY!
 const error = {
-  'UNKNOWN': [500, 1],
+  UNKNOWN: [500, 1],
   'CORE.Conflict': [409, 2],
   'CORE.RecordAlreadyExistsError': [409, 3],
   'CORE.RecordNotFoundError': [404, 4],
@@ -98,7 +98,7 @@ require('../../common/src/cli').run('precedence-api', {
       header: 'Environment variables',
       content: [{
         name: 'PRECEDENCE_PRIVATE_KEY',
-        description: `Set the ECDSA private key to sign webhooks and records (if not already done by the client)`
+        description: 'Set the ECDSA private key to sign webhooks and records (if not already done by the client)'
       }]
     })
     return sections
@@ -137,7 +137,7 @@ require('../../common/src/cli').run('precedence-api', {
   }, {
     name: 'webhook',
     type: String,
-    description: `Set a webhook (block creation)`,
+    description: 'Set a webhook (block creation)',
     lazyMultiple: true
   }],
   _exec: (command, definitions, args, options) => {
