@@ -21,7 +21,7 @@ module.exports = (redisReadOnly, urls) => {
         results = await redis.xrange(webhookStream, 0, '+', 'COUNT', count)
         for (const result of results) {
           const streamId = result[0]
-          const timestamp = streamId.split('-')[0]
+          const timestamp = Number(streamId.split('-')[0])
           const object = objectify(result[1])
           if (blacklist[object.url]) {
             continue

@@ -28,21 +28,21 @@ const blockResponse = (block) => {
   }
 }
 
-const parseBlockFromStream = async (result) => {
-  return result && JSON.parse(result[1][1])
+const parseBlockFromStream = (result) => {
+  const block = result && JSON.parse(result[1][1])
+  if (block) {
+    block.timestamp = Number(block.timestamp)
+  }
+  return block
 }
 
-const getBlockInfo = async (redis, streamId) => {
-  return parseBlockFromStream((await redis.xrevrange(blockStream, streamId, '-', 'COUNT', 1))[0])
-}
+const getBlockInfo = async (redis, streamId) => parseBlockFromStream((await redis.xrevrange(blockStream, streamId, '-', 'COUNT', 1))[0])
 
 const getLastBlockInfo = async (redis) => {
   return getBlockInfo(redis, '+')
 }
 
-const getNextBlockInfo = async (redis, timestamp) => {
-  return parseBlockFromStream((await redis.xrange(blockStream, timestamp, '+', 'COUNT', 1))[0])
-}
+const getNextBlockInfo = async (redis, timestamp) => parseBlockFromStream((await redis.xrange(blockStream, timestamp, '+', 'COUNT', 1))[0])
 
 const getLastTodoStreamId = async (redis) => {
   const result = (await redis.xrevrange(recordStream, '+', '-', 'COUNT', 1))[0]
@@ -67,7 +67,7 @@ const getNewBlock = async (redis) => {
     location,
     blockPendingStreamId,
     previous,
-    timestamp: blockPendingStreamId.split('-')[0],
+    timestamp: Number(blockPendingStreamId.split('-')[0]),
     trie: new Trie(Levelup(Redisdown(location), {
       host: redis.options.host,
       port: redis.options.port
@@ -178,18 +178,8 @@ const getBlock = async (redis, id = null, records = false) => {
     block = await getBlockInfo(redis, blockLedgerStreamId)
   } else {
     const last = await getLastBlockInfo(redis)
-    if (last) {
-      block = {
-        index: last.index + 1,
-        previous: {
-          root: last.root,
-          timestamp: last.timestamp
-        }
-      }
-    } else {
-      block = {
-        index: 0
-      }
+    block = {
+      previous: last ? blockResponse(last) : null
     }
   }
   if (records) {
