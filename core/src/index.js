@@ -2,7 +2,7 @@ const Redis = require('ioredis')
 
 const blocks = require('./blocks')
 const defaults = require('./defaults')
-const record = require('./records')
+const records = require('./records')
 
 module.exports = (options = defaults) => {
   const namespace = options.namespace || defaults.namespace
@@ -22,7 +22,7 @@ module.exports = (options = defaults) => {
   )
 
   const getRecord = async (id) => {
-    const result = await record.getRecord(redisReadOnly, id)
+    const result = await records.getRecord(redisReadOnly, id)
     if (!result) {
       return null
     }
@@ -42,13 +42,13 @@ module.exports = (options = defaults) => {
     return getRecord(id)
   }
 
-  const getLastRecordId = (chain) => record.getLastRecordId(redisReadOnly, chain)
+  const getLastRecordId = (chain) => records.getLastRecordId(redisReadOnly, chain)
 
-  const createRecords = (records, preExec = null) => record.createRecords(redisReadOnly, records, preExec)
+  const createRecords = (_records, preExec = null) => records.createRecords(redisReadOnly, _records, preExec)
 
-  const deleteRecord = (id) => record.deleteRecord(redisReadOnly, id)
+  const deleteRecord = (id) => records.deleteRecord(redisReadOnly, id)
 
-  const deleteChain = (id, data = false) => record.deleteChain(redisReadOnly, id, data)
+  const deleteChain = (id, data = false) => records.deleteChain(redisReadOnly, id, data)
 
   const getBlock = (id = null, records = false) => blocks.getBlock(redisReadOnly, id, records)
 
