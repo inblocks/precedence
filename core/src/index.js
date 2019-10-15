@@ -54,11 +54,7 @@ module.exports = (options = defaults) => {
 
   const createBlock = async (empty = defaults.block.empty, max = defaults.block.max) => {
     const block = await blocks.createBlock(redisReadOnly, empty, max)
-    setTimeout(() => {
-      if (webhooks && block) {
-        webhooks.add('block', block)
-      }
-    }, 0)
+    webhooks && webhooks.add('block', block)
     return block
   }
 

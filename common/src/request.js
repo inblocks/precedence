@@ -12,7 +12,7 @@ const paramsSerializer = (params) => Object.entries(params).map(([k, v]) => {
   }
 }).reduce((r, a) => r.concat(a), []).join('&')
 
-module.exports = (_package) => (method, url, params = null, data = Buffer.from([]), headers = null, timeout = 10000) => {
+module.exports = _package => (method, url, params = null, data = Buffer.from([]), headers = null, timeout = 10000) => {
   if (!Buffer.isBuffer(data)) {
     throw new Error('data must be a buffer')
   }
@@ -22,7 +22,7 @@ module.exports = (_package) => (method, url, params = null, data = Buffer.from([
   }, headers || {})
   if (process.env.PRECEDENCE_PRIVATE_KEY) {
     headers['precedence-address'] = privateToAddress(process.env.PRECEDENCE_PRIVATE_KEY)
-    headers['precedence-signature'] = sign(sha256(data), process.env.PRECEDENCE_PRIVATE_KEY)
+    headers['precedence-signature'] = sign(Buffer.from(sha256(data), 'hex'), process.env.PRECEDENCE_PRIVATE_KEY)
   }
   const config = {
     method,

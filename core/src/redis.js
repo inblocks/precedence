@@ -1,4 +1,4 @@
-const ConcurrentError = require('./errors').ConcurrentError
+const ConflictError = require('./errors').ConflictError
 
 module.exports.getNextStreamId = id => {
   if (id) {
@@ -28,7 +28,7 @@ module.exports.getTime = (redis) => {
 module.exports.execOperations = async (redis, operations) => {
   const results = await redis.multi(operations).exec()
   if (results === null) {
-    throw new ConcurrentError()
+    throw new ConflictError()
   }
   return results.map(result => {
     if (result[0] !== null) {

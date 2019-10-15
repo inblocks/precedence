@@ -78,7 +78,7 @@ const createRecords = async (redis, records, preExec) => {
       {
         let ok = false
         try {
-          ok = recover(recordInfo.hash, record.signature) === (record.address || '').toLowerCase()
+          ok = recover(Buffer.from(recordInfo.hash, 'hex'), record.signature) === (record.address || '').toLowerCase()
         } catch (e) {
           // nothing to do
         }

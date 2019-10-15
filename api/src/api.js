@@ -187,7 +187,7 @@ require('../../common/src/cli').run('precedence-api', {
       const data = !req.query.hash && !req.body ? Buffer.from([]) : req.body
       const [address, signature] = req.headers['precedence-address'] && req.headers['precedence-signature']
         ? [req.headers['precedence-address'], req.headers['precedence-signature']]
-        : [nodeAddress, sign(req.query.hash || sha256(data), process.env.PRECEDENCE_PRIVATE_KEY)]
+        : [nodeAddress, sign(Buffer.from(req.query.hash || sha256(data), 'hex'), process.env.PRECEDENCE_PRIVATE_KEY)]
       return precedence.createRecords([{
         id: req.query.id ? sha256(req.query.id) : random(32),
         hash: req.query.hash,
@@ -229,7 +229,7 @@ require('../../common/src/cli').run('precedence-api', {
     app.get('/blocks/:id', getBlock()) // get a block by its root/index
     app.post('/blocks', api((req, res) => {
       const empty = req.query['no-empty'] !== 'true'
-      const max = req.query.max && Number(req.query.max)
+      const max = req.query.max ? Number(req.query.max) : undefined
       return precedence.createBlock(empty, max).then(result => {
         res.status(result ? 201 : 200)
         return result
