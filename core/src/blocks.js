@@ -176,15 +176,20 @@ const getBlock = async (redis, id = null, records = false) => {
       return null
     }
     block = await getBlockInfo(redis, blockLedgerStreamId)
+    if (records) {
+      const start = block.index ? (await getBlock(redis, block.index - 1)).timestamp : '-'
+      const end = block.timestamp ? block.timestamp : '+'
+      block.records = (await redis.xrange(recordStream, start, end)).map(o => o[1][1])
+    }
   } else {
     const last = await getLastBlockInfo(redis)
+    const start = last ? last.timestamp : '-'
+    const res = (await redis.xrange(recordStream, start, '+')).map(o => o[1][1])
     block = {
-      previous: last ? blockResponse(last) : null
+      count: res.length,
+      previous: last ? blockResponse(last) : null,
+      records: records ? res : undefined
     }
-  }
-  if (records) {
-    const previousTimestamp = block.index > 0 && (await getBlock(redis, block.index - 1)).timestamp
-    block.records = (await redis.xrange(recordStream, previousTimestamp || '-', block.timestamp ? block.timestamp : '+')).map(o => o[1][1])
   }
   return blockResponse(block)
 }
