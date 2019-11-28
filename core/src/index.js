@@ -11,11 +11,7 @@ module.exports = (redis, options = defaults) => {
     if (!result) {
       return null
     }
-    result.block = await blocks.getProof(
-      redis,
-      result.timestamp,
-      Buffer.from(result.provable.id, result.provable.id.match(/^[0-9a-f]*$/i) && result.provable.id.length % 2 === 0 ? 'hex' : 'utf8')
-    )
+    result.block = await blocks.getProof(redis, result.timestamp, Buffer.from(result.provable.id, 'hex'))
     return result
   }
 

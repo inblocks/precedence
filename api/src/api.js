@@ -199,7 +199,7 @@ require('../../common/src/cli').run('precedence-api', {
         ? [req.headers['precedence-address'], req.headers['precedence-signature']]
         : [nodeAddress, sign(Buffer.from(req.query.hash || sha256(data), 'hex'), process.env.PRECEDENCE_PRIVATE_KEY)]
       return precedence.createRecords([{
-        id: req.query.id ? sha256(req.query.id) : random(32),
+        id: req.query.id,
         hash: req.query.hash,
         data,
         chains: Array.isArray(req.query.chain) ? req.query.chain : (req.query.chain && [req.query.chain]),

@@ -56,11 +56,12 @@ const createRecords = async (redis, records, preExec) => {
       if (!record.hash && !record.data) {
         throw new Error('data and or hash must be provided')
       }
+      const id = record.id ? sha256(record.id) : random(32)
       {
-        const key = util.format(recordInfoKeyFormat, record.id)
+        const key = util.format(recordInfoKeyFormat, id)
         await redis.watch(key)
         if (await redis.exists(key)) {
-          throw new RecordAlreadyExistsError(record.id)
+          throw new RecordAlreadyExistsError(id)
         }
       }
       const recordInfo = {
@@ -87,14 +88,14 @@ const createRecords = async (redis, records, preExec) => {
         }
       }
       recordInfo.provable = {
-        id: record.id,
+        id,
         seed: obfuscate(recordInfo.seed, recordInfo.seed),
         hash: obfuscate(recordInfo.seed, recordInfo.hash),
         address: obfuscate(recordInfo.seed, recordInfo.address),
         signature: obfuscate(recordInfo.seed, recordInfo.signature)
       }
       if (record.store === true) {
-        operations.push(['set', util.format(recordDataKeyFormat, record.id), record.data])
+        operations.push(['set', util.format(recordDataKeyFormat, id), record.data])
         recordInfo.data = record.data.length
       }
       const previous = {}
@@ -102,7 +103,7 @@ const createRecords = async (redis, records, preExec) => {
         for (const chain of record.chains) {
           await redis.watch(chain)
           const last = local.chain[chain] ? local.chain[chain].id : await getLastRecordId(redis, chain)
-          local.chain[chain] = record.id
+          local.chain[chain] = id
           recordInfo.chains[chain] = last
           if (last) {
             previous[last] = true
@@ -125,15 +126,13 @@ const createRecords = async (redis, records, preExec) => {
       }
       recordInfo.provable.previous = Object.keys(previous).sort()
       const result = recordResponse(recordInfo, record.store === true && record.data)
-      operations.push(
-        [
-          'xadd', recordStream, '*',
-          'key', record.id.match(/^[0-9a-f]*$/i) && record.id.length % 2 === 0 ? record.id : Buffer.from(record.id, 'utf8').toString('hex'),
+      operations.push(['xadd', recordStream, '*',
+          'key', id,
           'value', sha256(JSON.stringify(recordInfo.provable))
         ],
         getSetRecordInfoOperation(recordInfo)
       )
-      local.record[record.id] = true
+      local.record[id] = true
       results.push(result)
     }
     Object.entries(local.chain).forEach(([chain, id]) => {
