@@ -5,7 +5,7 @@ const Levelup = require('levelup')
 const Redisdown = require('redisdown')
 
 const { ConcurrentError } = require('./errors')
-const { getNextStreamId, objectify, getNewRedisClient, execOperations } = require('./redis')
+const { getNextStreamId, objectify, execOperations } = require('./redis')
 const { random } = require('../../common/src/utils')
 
 const recordStream = 'record.stream'
@@ -195,7 +195,7 @@ const createBlock = async (redis, empty, max) => {
   if (end === null && !empty) {
     return null
   }
-  redis = getNewRedisClient(redis)
+  redis = redis.duplicate()
   try {
     await redis.watch(blockStream)
     const block = await getNewBlock(redis)

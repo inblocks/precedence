@@ -6,8 +6,7 @@ const { random } = require('../../common/src/utils')
 const count = 10
 const webhookStream = 'webhook.stream'
 
-module.exports = (redisReadOnly, urls) => {
-  const redis = require('./redis').getNewRedisClient(redisReadOnly)
+module.exports = (redis, urls) => {
   const exponentialBackoff = urls.reduce((r, url) => {
     r[url] = null
     return r

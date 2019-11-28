@@ -2,7 +2,6 @@
 
 const createError = require('http-errors')
 
-const precedenceDefaults = require('../../core/src/defaults')
 const { sign } = require('../../common/src/signature')
 const { random, sha256 } = require('../../common/src/utils')
 
@@ -17,6 +16,8 @@ const {
 } = require('./errors')
 
 const defaults = {
+  namespace: 'precedence',
+  redis: 'localhost:6379',
   limit: 500000000,
   port: 9000
 }
@@ -122,8 +123,8 @@ require('../../common/src/cli').run('precedence-api', {
   }, {
     name: 'namespace',
     type: String,
-    description: `Set the namespace to run several isolated precedence instances over the same storage system (default: ${precedenceDefaults.namespace})`,
-    defaultValue: precedenceDefaults.namespace
+    description: `Set the namespace to run several isolated precedence instances over the same storage system (default: ${defaults.namespace})`,
+    defaultValue: defaults.namespace
   }, {
     name: 'port',
     type: Number,
@@ -132,8 +133,8 @@ require('../../common/src/cli').run('precedence-api', {
   }, {
     name: 'redis',
     type: String,
-    description: `Set the Redis server location (default: ${precedenceDefaults.redis})`,
-    defaultValue: precedenceDefaults.redis
+    description: `Set the Redis uri (default: ${defaults.redis})`,
+    defaultValue: defaults.redis
   }, {
     name: 'webhook',
     type: String,
@@ -144,10 +145,19 @@ require('../../common/src/cli').run('precedence-api', {
     const nodeAddress = getNodeAddress()
     log(`node address: ${nodeAddress}`)
     log(JSON.stringify(options, null, 2))
-    options.webhooks = options.webhook
-    delete options.webhook
 
-    const precedence = require('../../core/src')(options)
+    const precedence = require('../../core/src')((() => {
+      const Redis = require('ioredis')
+      const redisHostPort = (options.redis || defaults.redis).split(':')
+      return new Redis({
+        keyPrefix: `${options.namespace || defaults.namespace}.`,
+        host: redisHostPort[0],
+        port: redisHostPort[1],
+        maxRetriesPerRequest: null
+      })
+    })(), {
+      webhooks: options.webhook
+    })
 
     const getBlock = () => api(async req => {
       const result = await precedence.getBlock(req.params.id, req.query.records === 'true')

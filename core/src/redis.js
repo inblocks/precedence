@@ -19,8 +19,6 @@ module.exports.objectify = array => {
   return o
 }
 
-module.exports.getNewRedisClient = (redis, override) => redis.duplicate(override || { readOnly: false })
-
 module.exports.getTime = (redis) => {
   return redis.time().then(result => Number(`${result[0]}${`00${Math.round(result[1] / 1000)}`.slice(-3)}`))
 }

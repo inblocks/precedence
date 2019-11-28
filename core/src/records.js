@@ -7,7 +7,7 @@ const {
   InvalidSignatureError
 } = require('./errors')
 const { random, sortObject, sha256 } = require('../../common/src/utils')
-const { getNewRedisClient, getTime, execOperations } = require('./redis')
+const { getTime, execOperations } = require('./redis')
 const { recover } = require('../../common/src/signature')
 
 const recordStream = 'record.stream'
@@ -47,7 +47,7 @@ const getRecord = async (redis, id) => {
 const getLastRecordId = (redis, chain) => redis.get(util.format(chainKeyFormat, chain))
 
 const createRecords = async (redis, records, preExec) => {
-  redis = getNewRedisClient(redis)
+  redis = redis.duplicate()
   try {
     const operations = []
     const local = { chain: {}, record: {} }
