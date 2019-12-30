@@ -2,9 +2,9 @@
   "name": "@precedence/core",
   "private": true,
   "dependencies": {
+    "abstract-leveldown": "^6.2.2",
     "levelup": "^4.3.2",
-    "merkle-patricia-tree": "^3.0.0",
-    "redisdown": "^0.1.12"
+    "merkle-patricia-tree": "^3.0.0"
   },
   "devDependencies": {
     "standard": "^14.3.1"

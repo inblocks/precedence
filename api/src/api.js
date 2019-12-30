@@ -3,7 +3,7 @@
 const createError = require('http-errors')
 
 const { sign } = require('../../common/src/signature')
-const { random, sha256 } = require('../../common/src/utils')
+const { sha256 } = require('../../common/src/utils')
 
 const {
   PrecedenceError,

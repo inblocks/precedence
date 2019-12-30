@@ -1,12 +1,13 @@
 const util = require('util')
 
+const LevelUp = require('levelup')
 const Trie = require('merkle-patricia-tree')
-const Levelup = require('levelup')
-const Redisdown = require('redisdown')
+
+const { random } = require('../../common/src/utils')
 
 const { ConcurrentError } = require('./errors')
 const { getNextStreamId, objectify, execOperations } = require('./redis')
-const { random } = require('../../common/src/utils')
+const RedisDown = require('./redisdown')
 
 const recordStream = 'record.stream'
 const blockStream = 'block.stream'
@@ -59,7 +60,7 @@ const getNewBlock = async (redis) => {
     previous = previousBlock.root
     streamId = previousBlock.streamId
   }
-  const location = random(32)
+  const location = `${index}.${random(8)}`
   const blockPendingStreamId = await redis.xadd(blockPendingStream, '*', 'index', index, 'location', location)
   return {
     index,
@@ -68,10 +69,7 @@ const getNewBlock = async (redis) => {
     blockPendingStreamId,
     previous,
     timestamp: Number(blockPendingStreamId.split('-')[0]),
-    trie: new Trie(Levelup(Redisdown(location), {
-      host: redis.options.host,
-      port: redis.options.port
-    })),
+    trie: new Trie(LevelUp(RedisDown(redis, location))),
     count: 0
   }
 }
@@ -92,22 +90,7 @@ const cleanBlocks = (redis) => {
         }
         const persistedBlock = await getBlockInfo(redis, blockLedgerStreamId)
         if (persistedBlock.location !== block.location) {
-          await new Promise((resolve, reject) => {
-            Redisdown.destroy(block.location, {
-              host: redis.options.host,
-              port: redis.options.port
-            }, (e) => {
-              try {
-                if (e) {
-                  reject(e)
-                } else {
-                  resolve(true)
-                }
-              } catch (e) {
-                reject(e)
-              }
-            })
-          })
+          await RedisDown.delete(redis, block.location)
         }
         await redis.xdel(blockPendingStream, blockPendingStreamId)
         setTimeout(clean, 0)
@@ -118,7 +101,7 @@ const cleanBlocks = (redis) => {
   })
 }
 
-const prove = async (trie, root, key) => {
+const getProof = async (trie, key) => {
   return new Promise((resolve, reject) => {
     trie.get(key, (e) => {
       try {
@@ -140,27 +123,6 @@ const prove = async (trie, root, key) => {
       }
     })
   })
-}
-
-const getProof = async (redis, timestamp, key) => {
-  const block = await getNextBlockInfo(redis, timestamp)
-  if (!block) {
-    return null
-  }
-  return {
-    root: block.root,
-    proof: await prove(
-      new Trie(
-        Levelup(Redisdown(block.location), {
-          host: redis.options.host,
-          port: redis.options.port
-        }),
-        Buffer.from(block.root, 'hex')
-      ),
-      block.root,
-      key
-    )
-  }
 }
 
 const getBlock = async (redis, id = null, records = false) => {
@@ -279,7 +241,7 @@ const createBlock = async (redis, empty, max) => {
       root: root,
       previous: block.index === 0 ? null : {
         root: block.previous,
-        proof: await prove(block.trie, root, previousKey)
+        proof: await getProof(block.trie, previousKey)
       }
     }
     await execOperations(redis, [
@@ -295,7 +257,16 @@ const createBlock = async (redis, empty, max) => {
 }
 
 module.exports = {
-  getProof,
+  getProof: async (redis, timestamp, key) => {
+    const block = await getNextBlockInfo(redis, timestamp)
+    if (!block) {
+      return null
+    }
+    return {
+      root: block.root,
+      proof: await getProof(new Trie(LevelUp(RedisDown(redis, block.location)), Buffer.from(block.root, 'hex')), key)
+    }
+  },
   getBlock,
   createBlock
 }

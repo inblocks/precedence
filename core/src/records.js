@@ -127,10 +127,10 @@ const createRecords = async (redis, records, preExec) => {
       recordInfo.provable.previous = Object.keys(previous).sort()
       const result = recordResponse(recordInfo, record.store === true && record.data)
       operations.push(['xadd', recordStream, '*',
-          'key', id,
-          'value', sha256(JSON.stringify(recordInfo.provable))
-        ],
-        getSetRecordInfoOperation(recordInfo)
+        'key', id,
+        'value', sha256(JSON.stringify(recordInfo.provable))
+      ],
+      getSetRecordInfoOperation(recordInfo)
       )
       local.record[id] = true
       results.push(result)
@@ -153,13 +153,15 @@ const deleteRecord = async (redis, id) => {
   if (!record || record.data === undefined) {
     return null
   }
-  const result = record.data
+  const bytes = record.data
   delete record.data
   await execOperations(redis, [
     getSetRecordInfoOperation(record),
     ['del', util.format(recordDataKeyFormat, id)]
   ])
-  return result
+  return {
+    bytes
+  }
 }
 
 const deleteChain = async (redis, chain, data = false) => {

@@ -3,7 +3,6 @@ const defaults = require('./defaults')
 const records = require('./records')
 
 module.exports = (redis, options = defaults) => {
-
   const webhooks = options.webhooks && options.webhooks.length > 0 && require('./webhook')(redis, options.webhooks)
 
   const getRecord = async (id) => {
