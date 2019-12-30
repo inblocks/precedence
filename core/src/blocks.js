@@ -14,6 +14,7 @@ const blockStream = 'block.stream'
 const blockPendingStream = 'block.pending.stream'
 const blockLedgerIdByIndexKeyFormat = 'block.index.%s'
 const blockLedgerIdByRootKeyFormat = 'block.root.%s'
+const blockMerkleFormat = 'block.merkle.%s.%s'
 
 const previousKey = 'previous'
 const seedKey = 'seed'
@@ -60,7 +61,7 @@ const getNewBlock = async (redis) => {
     previous = previousBlock.root
     streamId = previousBlock.streamId
   }
-  const location = `${index}.${random(8)}`
+  const location = random(32)
   const blockPendingStreamId = await redis.xadd(blockPendingStream, '*', 'index', index, 'location', location)
   return {
     index,
@@ -69,7 +70,7 @@ const getNewBlock = async (redis) => {
     blockPendingStreamId,
     previous,
     timestamp: Number(blockPendingStreamId.split('-')[0]),
-    trie: new Trie(LevelUp(RedisDown(redis, location))),
+    trie: new Trie(LevelUp(RedisDown(redis, util.format(blockMerkleFormat, index, location)))),
     count: 0
   }
 }
@@ -90,7 +91,7 @@ const cleanBlocks = (redis) => {
         }
         const persistedBlock = await getBlockInfo(redis, blockLedgerStreamId)
         if (persistedBlock.location !== block.location) {
-          await RedisDown.delete(redis, block.location)
+          await RedisDown.delete(redis, util.format(blockMerkleFormat, block.index, block.location))
         }
         await redis.xdel(blockPendingStream, blockPendingStreamId)
         setTimeout(clean, 0)
@@ -264,7 +265,7 @@ module.exports = {
     }
     return {
       root: block.root,
-      proof: await getProof(new Trie(LevelUp(RedisDown(redis, block.location)), Buffer.from(block.root, 'hex')), key)
+      proof: await getProof(new Trie(LevelUp(RedisDown(redis, util.format(blockMerkleFormat, block.index, block.location))), Buffer.from(block.root, 'hex')), key)
     }
   },
   getBlock,
