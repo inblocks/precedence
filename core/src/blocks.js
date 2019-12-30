@@ -104,21 +104,12 @@ const cleanBlocks = (redis) => {
 
 const getProof = async (trie, key) => {
   return new Promise((resolve, reject) => {
-    trie.get(key, (e) => {
+    Trie.prove(trie, key, (e, prove) => {
       try {
         if (e) {
           return reject(e)
         }
-        Trie.prove(trie, key, (e, prove) => {
-          try {
-            if (e) {
-              return reject(e)
-            }
-            resolve(prove.map(o => o.toString('hex')))
-          } catch (e) {
-            reject(e)
-          }
-        })
+        resolve(prove.map(o => o.toString('hex')))
       } catch (e) {
         reject(e)
       }
