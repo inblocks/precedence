@@ -1,4 +1,4 @@
-const request = require('../../common/src/request')(require('../package.json'))
+const request = require('../../common/src/request')
 
 const { objectify } = require('./redis')
 const { random } = require('../../common/src/utils')
@@ -25,10 +25,10 @@ module.exports = (redis, urls) => {
           if (blacklist[object.url]) {
             continue
           }
-          const log = `${timestamp} ${JSON.stringify(object)}`
+          const log = `${streamId} ${JSON.stringify(object)}`
           const eb = exponentialBackoff[object.url]
           if (eb === undefined) {
-            console.log(`WEBHOOK WARNING "ignored" ${log}`)
+            console.log(`WEBHOOK WARNING [IGNORED] ${log}`)
             await redis.xdel(webhookStream, streamId)
             continue
           } else if (eb && (eb.timestamp + eb.value) > Date.now()) {
@@ -41,18 +41,17 @@ module.exports = (redis, urls) => {
               id: object.id,
               type: object.type,
               data: JSON.parse(object.data)
-            }), 'utf8'))
-            const message = `"${response.status} ${response.statusText}" ${log}`
+            }), 'utf8'), undefined, 10000)
             if (response.status === 200) {
-              console.log(`WEBHOOK INFO ${message}`)
+              console.log(`WEBHOOK INFO [OK] ${log}`)
               await redis.xdel(webhookStream, streamId)
               exponentialBackoff[object.url] = null
               continue
             } else {
-              console.log(`WEBHOOK WARNING ${message}`)
+              console.log(`WEBHOOK WARNING [${response.status} ${response.data}] ${log}`)
             }
           } catch (e) {
-            console.log(`WEBHOOK WARNING ${JSON.stringify(`error: ${e.message}`)} ${log}`)
+            console.log(`WEBHOOK WARNING [${e.response && e.response.data ? `${e.response.status} ${JSON.stringify(e.response.data)}` : e.message}] ${log}`)
           }
           blacklist[object.url] = true
           if (eb === null) {

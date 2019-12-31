@@ -131,7 +131,7 @@ const run = async (argv, command, definitions) => {
     return unexpectedArguments(command, definitions, result['*'].slice(argumentsCount - arity.min - 1))
   }
   if (result._unknown) {
-    if (result._unknown.indexOf('--help') > -1) {
+    if (result._unknown.includes('--help')) {
       return printUsage(0, command, definitions)
     }
     return unknownOption(command, definitions, result._unknown[0])

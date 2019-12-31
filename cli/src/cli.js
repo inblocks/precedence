@@ -1,18 +1,33 @@
 #!/usr/bin/env node
 
 const cli = require('../../common/src/cli')
-const request = require('../../common/src/request')(require('../package.json'))
+const { getToken, list, logout, parseTokenPayload } = require('../../common/src/OAuth2')
+const request = require('../../common/src/request')
 
 const defaults = {
   api: 'http://localhost:9000'
 }
 
-const out = (object) => process.stdout.write(`${JSON.stringify(object, null, 2)}\n`)
+const out = object => process.stdout.write(`${JSON.stringify(object, null, 2)}\n`)
 
 const exec = async (method, url, params, data, headers) => {
+  if (Object.keys(process.env).some(e => e.startsWith('PRECEDENCE_OAUTH2_'))) {
+    await require('../../common/src/OAuth2').auth({
+      grant_type: 'client_credentials',
+      url: process.env.PRECEDENCE_OAUTH2_URL,
+      audience: process.env.PRECEDENCE_OAUTH2_AUDIENCE,
+      client_id: process.env.PRECEDENCE_OAUTH2_CLIENT_ID,
+      client_secret: process.env.PRECEDENCE_OAUTH2_CLIENT_SECRET
+    })
+  }
+  const token = getToken()
+  if (token) {
+    headers = headers || {}
+    headers.authorization = `Bearer ${token}`
+  }
   let response
   try {
-    response = (await await request(
+    response = (await request(
       method,
       `${process.env.PRECEDENCE_API || defaults.api}${url}`,
       params,
@@ -46,12 +61,47 @@ cli.run('precedence', {
       }, {
         name: 'PRECEDENCE_API',
         description: `Set the API base URL (default: "${defaults.api}")`
+      }, {
+        name: 'PRECEDENCE_OAUTH2_URL',
+        description: 'Set the OAuth2 URL'
+      }, {
+        name: 'PRECEDENCE_OAUTH2_AUDIENCE',
+        description: 'Set the OAuth2 audience'
+      }, {
+        name: 'PRECEDENCE_OAUTH2_CLIENT_ID',
+        description: 'Set the OAuth2 client id'
+      }, {
+        name: 'PRECEDENCE_OAUTH2_CLIENT_SECRET',
+        description: 'Set the OAuth2 client secret'
       }]
     })
     return sections
   },
   _parameters: { COMMAND: false },
   _commands: {
+    auth: {
+      _parameters: { COMMAND: false },
+      _commands: {
+        'list': {
+          _description: 'List identities.',
+          _exec: async () => {
+            out(await Promise.all((await list()).map(async id => {
+              return {
+                id,
+                payload: parseTokenPayload(await getToken(id))
+              }
+            })))
+          }
+        },
+        'logout': {
+          _description: 'Remove an identity.',
+          _parameters: { ID: true },
+          _exec: async (command, definition, args) => {
+            out(await logout(args[0]))
+          }
+        }
+      }
+    },
     utils: {
       _parameters: { COMMAND: false },
       _commands: {
@@ -207,4 +257,4 @@ You can explicitly set the previous record(s) of the record you are creating (by
       }
     }
   }
-}).then(code => process.exit)
+}).then(code => process.exit(code))
