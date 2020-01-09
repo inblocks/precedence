@@ -14,8 +14,14 @@ class OAuth2 {
       if (conf[key]) params.append(key, conf[key])
     })
     const file = path.resolve(root, sha256(params.toString()))
-    token = await fs.promises.access(file, fs.constants.F_OK).then(() => {
-      return fs.promises.readFile(file, 'utf8')
+    let exp = await fs.promises.access(file, fs.constants.F_OK).then(() => {
+      return fs.promises.readFile(file, 'utf8').then(data => {
+        const exp = OAuth2.parseTokenPayload(data).exp * 1000
+        if (exp - Date.now() > 1000) {
+          token = data
+          return exp
+        }
+      })
     }).catch(e => {
       if (e.code !== 'ENOENT') throw e
       return fs.promises.mkdir(root, { recursive: true }).then(() => {
@@ -33,8 +39,8 @@ class OAuth2 {
         console.error(e.message)
         process.exit(1)
       })
+      exp = OAuth2.parseTokenPayload(token).exp * 1000
     }
-    const exp = OAuth2.parseTokenPayload(token).exp * 1000
     const timeout = Math.min(1000 * 60 * 60, (exp - Date.now()) / 2)
     setTimeout(OAuth2.auth, timeout, conf)
   }
