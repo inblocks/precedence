@@ -289,7 +289,14 @@ You can explicitly set the previous record(s) of the record you are creating (by
         get: {
           _description: 'Get a record by its identifier.',
           _parameters: { ID: true },
-          _exec: (command, definitions, args) => exec('GET', `/records/${args[0]}`)
+          _options: [
+            {
+              name: 'data',
+              type: Boolean,
+              description: `Get the original data.`
+            }
+          ],
+          _exec: (command, definitions, args, options) => exec('GET', `/records/${args[0]}`, options)
         },
         delete: {
           _description: 'Delete the data of a record.',

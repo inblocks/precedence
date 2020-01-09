@@ -24,7 +24,7 @@ All these features allow you bring secure blockchain-powered traceability featur
 **_precedence_** is edited by [**_inBlocks_**](https://precedence.inblocks.io) so you can rely on us for hosting the solution for you, supporting you during the deployment and providing you a very strong SLA.
 
 In the following:
-- "fingerprint" means "hexadecimal string format fo the hash computed with SHA-256 algorithm";
+- "fingerprint" means "hexadecimal string format for the hash computed with SHA-256 algorithm";
 - "obfuscated fingerprint of <VALUE>" means fingerprint of "<SEED> <VALUE>".
 
 # Quick Start
@@ -95,7 +95,7 @@ api="http://localhost:9000"
 
 ## Record API calls
 
-To create a first record you can use the following command. By default the data is not stored in **_precedence_**, the only data-related information stored is its fingerprint.
+To create a first record you can use the following command. By default the original data is not stored in **_precedence_**, the only data-related information stored is its fingerprint.
 
 ```bash
 curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=true" -d "value 1"
@@ -130,7 +130,7 @@ You will find below a response example.
 For sure you need some explanation about the returned JSON response:
 - `took` is the number of millisecond this request needed to be processed at server-side;
 - `status` is the HTTP status code;
-- `data` contains every piece of information related to the data you provided;
+- `data` contains every piece of information related to the original data you provided;
   - `provable` contains the information that you will be able to prove using **_precedence_**;
     - `id` is the record identifier;
     - `seed` is the obfuscated fingerprint of the root `seed`;
@@ -144,7 +144,7 @@ For sure you need some explanation about the returned JSON response:
   - `hash` is the fingerprint of the original data;
   - `address` is used for proof-of-ownership, corresponding to the public key of ECDSA key pair used to sign the root `hash`;
   - `signature` is the Ethereum signature of the root `hash`;
-  - `chains` is the map of relation between a chain and its last record identifier.
+  - `chains` is the map of relation between a chain and its last record identifier;
 
 We can check that:
 - the fingerprint of `seed` value is equal to `provable.seed` value:
@@ -190,22 +190,24 @@ curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=tru
     "address": "0x4592350babefcc849943db091b6c49f8b86f8aaa",
     "signature": "0xbcb94922257b69fb5bf7bee76be9110100b569290e234b580f6ca8a96af477c37708eaf951ad2032bd3f9c453dc4d74e0db03cd554356ef95baccf4ea0ea0d801b",
     "chains": {},
-    "data": "dmFsdWUgMg=="
+    "data": {
+      "bytes": 7
+    }
   }
 }
 ```
 
-In the response you can see that the data you have sent has been persisted in **_precedence_** in the `data` field using base64 encoding.
+You can see that you have persisted 7 bytes in **_precedence_** (`data.bytes` field).
 
-To decode the data you can run:
+To retrieve the original data you can run: 
 
 ```bash
-echo "dmFsdWUgMg==" | base64 --decode
+curl -XGET "$api/records/221e9af9cc4a8213acfe09c01e5f7114a7eb5308c86acda4a28cbf5d4bd026e6?data=true"
 ```
 
 ---
 
-Let's create the same data again.
+Let's create the same original data again.
 
 ```bash
 curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=true&store=true" -d "value 2"
@@ -230,16 +232,18 @@ curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=tru
     "address": "0x4592350babefcc849943db091b6c49f8b86f8aaa",
     "signature": "0xbcb94922257b69fb5bf7bee76be9110100b569290e234b580f6ca8a96af477c37708eaf951ad2032bd3f9c453dc4d74e0db03cd554356ef95baccf4ea0ea0d801b",
     "chains": {},
-    "data": "dmFsdWUgMg=="
+    "data": {
+      "bytes": 7
+    }
   }
 }
 ```
 
-All the values of the `provable` object are different from the previous one, even with the same data value. This is made possible by using the `seed` in the hashing process. This way the `provable` fields are 100% obfuscated and can not lead to data leaking.
+All the values of the `provable` object are different from the previous one, even with the same original data. This is made possible by using the `seed` in the hashing process. This way the `provable` fields are 100% obfuscated and can not lead to data leaking.
 
 ---
 
-It is also possible to provide the fingerprint of the data with the `hash` parameter.
+It is also possible to provide the fingerprint of the original data with the `hash` parameter.
 
 ```bash
 curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=true&hash=085a57ddb929d1a2853aad31940d6e718918762b8db43f299e86fe732d13d6b9" -d "value 4"
@@ -299,7 +303,9 @@ curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=tru
     "address": "0x4592350babefcc849943db091b6c49f8b86f8aaa",
     "signature": "0x7c6d80cf86f8c5b096d1761eaedb9835896c0ccd839722d4197b268ba8e7c568154bf8bf701ba689dd68e5d8f3f7528d721c35ca87e79021a447587f2966d0c61b",
     "chains": {},
-    "data": "dmFsdWUgNQ=="
+    "data": {
+      "bytes": 7
+    }
   }
 }
 ```
@@ -349,13 +355,14 @@ curl -XGET "$api/records/3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745
     "address": "0x4592350babefcc849943db091b6c49f8b86f8aaa",
     "signature": "0x7c6d80cf86f8c5b096d1761eaedb9835896c0ccd839722d4197b268ba8e7c568154bf8bf701ba689dd68e5d8f3f7528d721c35ca87e79021a447587f2966d0c61b",
     "chains": {},
-    "data": "dmFsdWUgNQ==",
-    "block": null
+    "data": {
+      "bytes": 7
+    }
   }
 }
 ```
 
-The record is not part of a block so the `block` value is `null`. To create a new block you can run the following command. To know more about block management check the dedicated `block` documentation section below.
+To create a new block you can run the following command. To know more about block management check the dedicated `block` documentation section below.
 
 ```bash
 curl -XPOST "$api/blocks?pretty=true"
@@ -401,7 +408,9 @@ curl -XGET "$api/records/3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745
     "address": "0x4592350babefcc849943db091b6c49f8b86f8aaa",
     "signature": "0x7c6d80cf86f8c5b096d1761eaedb9835896c0ccd839722d4197b268ba8e7c568154bf8bf701ba689dd68e5d8f3f7528d721c35ca87e79021a447587f2966d0c61b",
     "chains": {},
-    "data": "dmFsdWUgNQ==",
+    "data": {
+      "bytes": 7
+    },
     "block": {
       "root": "67dd95107b4e561e764deb01ae297ed67e447065f0ec7560dbdeab555d83dc99",
       "proof": [
@@ -476,7 +485,20 @@ curl -XGET "$api/records/3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745
 }
 ```
 
-The original `data` value has been removed.
+The `data` field has been removed from the response and if you try to get the original data, you'll get an error.
+
+```bash
+curl -XGET "$api/records/3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4?data=true"
+```
+
+```json
+{
+  "took": 3,
+  "status": 404,
+  "error": 5,
+  "message": "Record \"3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4\" data not found"
+}
+```
 
 ---
 
@@ -508,7 +530,9 @@ curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=tru
     "address": "0x4592350babefcc849943db091b6c49f8b86f8aaa",
     "signature": "0xa6bbc4cc1e50088492dc482801c4d4695d14f367b3b10e34f93a962e1a8213b634b7bfa6a95edc6bbc25a359cf9a4554d6dee72078a671f401b6aa667dcb1ab31c",
     "chains": {},
-    "data": "dmFsdWUgNg=="
+    "data": {
+      "bytes": 7
+    }
   }
 }
 ```
@@ -587,7 +611,9 @@ curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=tru
     "chains": {
       "chain1": "893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951"
     },
-    "data": "dmFsdWUgOA=="
+    "data": {
+      "bytes": 7
+    }
   }
 }
 ```
@@ -635,8 +661,9 @@ curl -XGET "$api/chains/chain1?pretty=true"
     "chains": {
       "chain1": "893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951"
     },
-    "data": "dmFsdWUgOA==",
-    "block": null
+    "data": {
+      "bytes": 7
+    }
   }
 }
 ```
@@ -679,7 +706,9 @@ curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=tru
       "chain1": "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
       "chain2": null
     },
-    "data": "dmFsdWUgOQ=="
+    "data": {
+      "bytes": 7
+    }
   }
 }
 ```
@@ -724,8 +753,9 @@ curl -XGET "$api/chains/chain1?pretty=true"
       "chain1": "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
       "chain2": null
     },
-    "data": "dmFsdWUgOQ==",
-    "block": null
+    "data": {
+      "bytes": 7
+    }
   }
 }
 ```
@@ -764,8 +794,9 @@ curl -XGET "$api/chains/chain2?pretty=true"
       "chain1": "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
       "chain2": null
     },
-    "data": "dmFsdWUgOQ==",
-    "block": null
+    "data": {
+      "bytes": 7
+    }
   }
 }
 ```
@@ -844,8 +875,7 @@ curl -XGET "$api/chains/chain2?pretty=true"
     "signature": "0x9512cf941a081db411960054d00a204e0cde97f34c477576b50aa21be15d43c04ac1f514babd0be4b7f39123e8594da32caf527e5a4aeed316e65ad570c9a1b41b",
     "chains": {
       "chain2": null
-    },
-    "block": null
+    }
   }
 }
 ```
@@ -876,13 +906,14 @@ curl -XGET "$api/records/75bdb5a188a281c9576331b5573d5be50f7802d92cc591d9dbbbfbc
     "address": "0x4592350babefcc849943db091b6c49f8b86f8aaa",
     "signature": "0xa6bbc4cc1e50088492dc482801c4d4695d14f367b3b10e34f93a962e1a8213b634b7bfa6a95edc6bbc25a359cf9a4554d6dee72078a671f401b6aa667dcb1ab31c",
     "chains": {},
-    "data": "dmFsdWUgNg==",
-    "block": null
+    "data": {
+      "bytes": 7
+    }
   }
 }
 ```
 
-`chain1` has been deleted as a chain label but the record that was refered to by this chain label is still available (without any data) and can be accessed using the `chain2` label. The data of record `75bdb5a188a281c9576331b5573d5be50f7802d92cc591d9dbbbfbcb7ee42de6` hasn't been deleted because this record was not part of `chain1`.
+`chain1` has been deleted as a chain label but the record that was referred to by this chain label is still available (without any data) and can be accessed using the `chain2` label. The data of record `75bdb5a188a281c9576331b5573d5be50f7802d92cc591d9dbbbfbcb7ee42de6` hasn't been deleted because this record was not part of `chain1`.
 
 ### Block API calls
 
@@ -918,10 +949,10 @@ The block creation API method returns the following informations:
 - `status` is the HTTP status code;
 - `data` contains every piece of information related to the block you created;
   - `root` is the root hash of the block;
-  - `index` is the block number, starting at 1;
+  - `index` is the block number, starting at 0;
   - `timestamp` is the record creation time (EPOCH millisecond);
   - `count` is the number of record contained in the block;
-  - `previous` is `null` if `index` is `1`;
+  - `previous` is `null` if `index` is `0`;
     - `root` is the root hash of the previous block;
     - `proof` is the associated proof in this block.
 
@@ -1054,20 +1085,27 @@ curl -XGET "$api/blocks/1?pretty=true"
 You can also retrieve it using its hash.
 
 ```bash
-root=$(curl -sS -XGET "$api/blocks/1?" | sed -En 's/.*"root":"([^"]*).*/\1/p')
+root=$(curl -sS -XGET "$api/blocks/1?pretty=true" | sed -En 's/.*"root": "([^"]*).*/\1/p' | head -n 1)
 curl -XGET "$api/blocks/$root?pretty=true"
 ```
 
 ```json
 {
-  "took": 5,
+  "took": 3,
   "status": 200,
   "data": {
-    "root": "67dd95107b4e561e764deb01ae297ed67e447065f0ec7560dbdeab555d83dc99",
-    "index": 0,
-    "timestamp": 1577720428000,
-    "count": 5,
-    "previous": null
+    "root": "2aeafe3bd211dfc26469a1f8d62a266fe57051d540953bb0e5fa54048c9da80c",
+    "index": 1,
+    "timestamp": 1577720790807,
+    "count": 1,
+    "previous": {
+      "root": "67dd95107b4e561e764deb01ae297ed67e447065f0ec7560dbdeab555d83dc99",
+      "proof": [
+        "e217a0c29b52521f885b86548c021a737eca1fbceb25745526b45b389d4fd356fe989e",
+        "f851a0e11362386708bf7159efc6b1a13f69a2ec4824101191826ec2b7e67eff6670c680808080a08f7aad3775fadcc05056e5d52593e48f18ad895c1646167bf89aeb63bfd989508080808080808080808080",
+        "ea8820726576696f7573a067dd95107b4e561e764deb01ae297ed67e447065f0ec7560dbdeab555d83dc99"
+      ]
+    }
   }
 }
 ```

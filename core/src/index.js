@@ -5,12 +5,14 @@ const records = require('./records')
 module.exports = (redis, options = defaults) => {
   const webhooks = options.webhooks && options.webhooks.length > 0 && require('./webhook')(redis, options.webhooks)
 
-  const getRecord = async (id) => {
-    const result = await records.getRecord(redis, id)
+  const getRecord = async (id, data = false) => {
+    const result = await records.getRecord(redis, id, data)
     if (!result) {
       return null
     }
-    result.block = await blocks.getProof(redis, result.timestamp, Buffer.from(result.provable.id, 'hex'))
+    if (!data) {
+      result.block = await blocks.getProof(redis, result.timestamp, Buffer.from(result.provable.id, 'hex')) || undefined
+    }
     return result
   }
 

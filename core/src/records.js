@@ -19,13 +19,6 @@ const obfuscate = (seed, value) => {
   return sha256(`${seed} ${value}`)
 }
 
-const recordResponse = (recordInfo, data) => {
-  const result = Object.assign({}, recordInfo)
-  delete result.data
-  result.data = data ? data.toString('base64') : undefined
-  return result
-}
-
 const getRecordInfo = async (redis, id) => {
   const result = await redis.get(util.format(recordInfoKeyFormat, id))
   return result && JSON.parse(result)
@@ -35,13 +28,12 @@ const getSetRecordInfoOperation = (recordInfo) => {
   return ['set', util.format(recordInfoKeyFormat, recordInfo.provable.id), JSON.stringify(recordInfo)]
 }
 
-const getRecord = async (redis, id) => {
-  const recordInfo = await getRecordInfo(redis, id)
-  if (!recordInfo) {
-    return null
+const getRecord = async (redis, id, data = false) => {
+  if (data) {
+    return await redis.getBuffer(util.format(recordDataKeyFormat, id)) || null
+  } else {
+    return await getRecordInfo(redis, id) || null
   }
-  const data = recordInfo.data !== undefined && await redis.getBuffer(util.format(recordDataKeyFormat, recordInfo.provable.id))
-  return recordResponse(recordInfo, data)
 }
 
 const getLastRecordId = (redis, chain) => redis.get(util.format(chainKeyFormat, chain))
@@ -96,7 +88,9 @@ const createRecords = async (redis, records, preExec) => {
       }
       if (record.store === true) {
         operations.push(['set', util.format(recordDataKeyFormat, id), record.data])
-        recordInfo.data = record.data.length
+        recordInfo.data = {
+          bytes: record.data.length
+        }
       }
       const previous = {}
       if (record.chains) {
@@ -125,12 +119,12 @@ const createRecords = async (redis, records, preExec) => {
         }
       }
       recordInfo.provable.previous = Object.keys(previous).sort()
-      const result = recordResponse(recordInfo, record.store === true && record.data)
+      const result = recordInfo
       operations.push(['xadd', recordStream, '*',
-        'key', id,
-        'value', sha256(JSON.stringify(recordInfo.provable))
-      ],
-      getSetRecordInfoOperation(recordInfo)
+          'key', id,
+          'value', sha256(JSON.stringify(recordInfo.provable))
+        ],
+        getSetRecordInfoOperation(recordInfo)
       )
       local.record[id] = true
       results.push(result)
@@ -153,7 +147,7 @@ const deleteRecord = async (redis, id) => {
   if (!record || record.data === undefined) {
     return null
   }
-  const bytes = record.data
+  const bytes = record.data.bytes
   delete record.data
   await execOperations(redis, [
     getSetRecordInfoOperation(record),
@@ -182,9 +176,9 @@ const deleteChain = async (redis, chain, data = false) => {
     for (const id of todo.splice(0, todo.length)) {
       const record = await getRecordInfo(redis, id)
       results.records++
-      if (data && record.data >= 0) {
+      if (data && record.data && record.data.bytes >= 0) {
         results.data.records++
-        results.data.bytes += record.data
+        results.data.bytes += record.data.bytes
         delete record.data
         operations.push(['del', util.format(recordDataKeyFormat, id)])
       }
