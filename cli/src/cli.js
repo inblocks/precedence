@@ -8,7 +8,7 @@ const defaults = {
   api: 'http://localhost:9000'
 }
 
-const out = object => process.stdout.write(`${JSON.stringify(object, null, 2)}\n`)
+const out = (value, raw) => process.stdout.write(raw ? value : `${JSON.stringify(value, null, 2)}\n`)
 
 const exec = async (method, url, params, data, headers) => {
   if (Object.keys(process.env).some(e => e.startsWith('PRECEDENCE_OAUTH2_'))) {
@@ -33,16 +33,16 @@ const exec = async (method, url, params, data, headers) => {
       params,
       data,
       headers
-    )).data
+    ))
   } catch (e) {
     if (e.response) {
-      response = e.response.data
+      response = e.response
     } else {
       console.error(`ERROR: ${e.message}`)
       return 1
     }
   }
-  out(response)
+  out(response.data, !response.headers['content-type'].startsWith('application/json'))
   return 0
 }
 
@@ -120,9 +120,51 @@ cli.run('precedence', {
           _description: 'Extract address from ECDSA private key.',
           _parameters: { KEY: true },
           _exec: (command, definitions, args) => {
-            out({
-              PUBLIC_ADDRESS: require('../../common/src/signature').privateToAddress(args[0])
-            })
+            out(require('../../common/src/signature').privateToAddress(args[0]), true)
+          }
+        },
+        'sign': {
+          _description: 'Sign the SHA-256 of DATA (utf8 string).',
+          _parameters: { DATA: true },
+          _options: [
+            {
+              name: 'file',
+              type: Boolean,
+              description: `Use the data contained in the file DATA.`
+            },
+            {
+              name: 'hex',
+              type: Boolean,
+              description: `Sign directly DATA (hexadecimal string).`
+            }
+          ],
+          _exec: async (command, definitions, args, options) => {
+            if (!process.env.PRECEDENCE_PRIVATE_KEY) {
+              return cli.errorUsage(command, definitions, 'PRECEDENCE_PRIVATE_KEY environment variable must be defined')
+            }
+            if (options.file && options.hex) {
+              return cli.errorUsage(command, definitions, 'file and hex options are exclusives')
+            }
+            let data = args[0]
+            if (options.file) {
+              const hash = require('crypto').createHash('sha256')
+              data = await new Promise((resolve, reject) => {
+                require('fs').createReadStream(data).on('error', e => {
+                  reject(e)
+                }).on('data', data => {
+                  hash.update(data)
+                }).on('end', () => {
+                  resolve(hash.digest('hex'))
+                })
+              })
+            } else if (options.hex) {
+              if (!/^[a-fA-F0-9]{64}$/.test(data)) {
+                return cli.errorUsage(command, definitions, 'DATA must match ^[a-fA-F0-9]\\\{64\\\}$')
+              }
+            } else {
+              data = require('../../common/src/utils').sha256(data)
+            }
+            out(require('../../common/src/signature').sign(Buffer.from(data, 'hex'), process.env.PRECEDENCE_PRIVATE_KEY), true)
           }
         }
       }
@@ -212,7 +254,7 @@ You can explicitly set the previous record(s) of the record you are creating (by
           }, {
             name: 'file',
             type: Boolean,
-            description: 'Use the data contained in the file named DATA'
+            description: 'Use the data contained in the file DATA'
           }, {
             alias: 'p',
             name: 'previous',
