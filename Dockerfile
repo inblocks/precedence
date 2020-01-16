@@ -40,6 +40,7 @@ RUN chmod 755 entrypoint.sh
 ENTRYPOINT ["/precedence/entrypoint.sh"]
 
 COPY --from=common /precedence/node_modules ./common/node_modules
+COPY --from=common /precedence/package*.json common/
 COPY --from=common /precedence/src common/src
 
 COPY --from=cli /precedence/node_modules ./cli/node_modules
