@@ -50,7 +50,7 @@ In the following:
     rm -rf $HOME/precedence-redis
     ```
 
-- If you don't use [Docker](https://docs.docker.com): [Node.js](https://nodejs.org) version 8+ and [npm](https://www.npmjs.com) version 5+.
+- If you don't use [Docker](https://docs.docker.com): [Node.js](https://nodejs.org) version 10.18.1+ and [npm](https://www.npmjs.com) version 6.13.4+.
 
 ## Run the REST API
 

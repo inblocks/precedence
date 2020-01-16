@@ -1,4 +1,4 @@
-FROM node:10-alpine as build
+FROM node:10.18.1-alpine3.11 as build
 RUN apk add python build-base
 WORKDIR /precedence
 
@@ -26,7 +26,7 @@ COPY core/src ./src
 
 
 
-FROM node:10-alpine
+FROM node:10.18.1-alpine3.11
 
 WORKDIR /precedence
 
