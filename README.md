@@ -105,20 +105,20 @@ You will find below a response example.
 
 ```json
 {
-  "took": 49,
+  "took": 26,
   "status": 201,
   "data": {
     "provable": {
-      "id": "c672a4e9bfc40c4bfdba09ec302e7c1335253f03d738937ebe6c3b58c7cc42f9",
-      "seed": "b8d493e1be14b12f27540be6b643f7b90240e310edd64eae84746ae5fe8d2d80",
-      "hash": "fda96a4e24fc90356d63547f5cbeb620df1cc83de33f4bd8546884e0e4e71faf",
-      "address": "1428f566e6105936cce27e85d850ed734d8c7b82651566da4eeaf4608dc8ebb7",
-      "signature": "d998c912838ac520074d5e73d43e9bbd894e7a0fb8055af24f6246f47697c391",
+      "id": "9baf839fcc73972d21807f43a25b98d8c82b8a3f63070e8b27cddb94919404bc",
+      "seed": "804fdac23d95593295a211708247385480aefc47e315e1d0d8f72d986ec62aca",
+      "hash": "34c1272bbdfafadebd18f6bc3facf4713a8f1f06b12f55de259a22b3c793a3ba",
+      "address": "3d7ad827af7a335b26fcceaf9e70bdbdb9f5abdc5b8af6fb6c09f74eb23d61e4",
+      "signature": "7371af2bddeb9dbf18ab24bad486c301790e0d5bc6c6d623dd87352f1b63d6dd",
       "chains": {},
       "previous": []
     },
-    "timestamp": 1577720261499,
-    "seed": "5a6406a76d398204a3372a6943d87476650de8cc438ea8499df2c35cc36df1f4",
+    "timestamp": 1581603111361,
+    "seed": "c2cfd7589f71bd5a4236f6cabdbba9223a3523f2b126553ae266a4a8a1a0f88d",
     "hash": "65da867639080176b5998c77219e2745474aa518a04268522467322f06fbd9d9",
     "address": "0x4592350babefcc849943db091b6c49f8b86f8aaa",
     "signature": "0xcc8bfb566fe89bdc2b6bfce1e35886cda7cf790492b117f12696eeb8ce5bcd3278c7c43cdfcda56e82c70064d7fd02ecbdc3c73caad0a7371136b491c8b44a201b",
@@ -149,13 +149,13 @@ For sure you need some explanation about the returned JSON response:
 We can check that:
 - the fingerprint of `seed` value is equal to `provable.seed` value:
 ```bash
-echo -n '5a6406a76d398204a3372a6943d87476650de8cc438ea8499df2c35cc36df1f4 5a6406a76d398204a3372a6943d87476650de8cc438ea8499df2c35cc36df1f4' | sha256sum
-# -> b8d493e1be14b12f27540be6b643f7b90240e310edd64eae84746ae5fe8d2d80
+echo -n 'c2cfd7589f71bd5a4236f6cabdbba9223a3523f2b126553ae266a4a8a1a0f88d c2cfd7589f71bd5a4236f6cabdbba9223a3523f2b126553ae266a4a8a1a0f88d' | sha256sum
+# -> 804fdac23d95593295a211708247385480aefc47e315e1d0d8f72d986ec62aca
 ```
 - the obfuscated fingerprint of the hash is equal to `provable.hash` value:
 ```bash
-echo -n "5a6406a76d398204a3372a6943d87476650de8cc438ea8499df2c35cc36df1f4 $(echo -n 'value 1' | sha256sum | cut -d' ' -f1)" | sha256sum
-# -> fda96a4e24fc90356d63547f5cbeb620df1cc83de33f4bd8546884e0e4e71faf
+echo -n "c2cfd7589f71bd5a4236f6cabdbba9223a3523f2b126553ae266a4a8a1a0f88d $(echo -n 'value 1' | sha256sum | cut -d' ' -f1)" | sha256sum
+# -> 34c1272bbdfafadebd18f6bc3facf4713a8f1f06b12f55de259a22b3c793a3ba
 ```
 - the signature is valid with [https://etherscan.io/verifySig](https://etherscan.io/verifySig):
   - [Step 1] Address: `0x4592350babefcc849943db091b6c49f8b86f8aaa`;
@@ -176,16 +176,16 @@ curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=tru
   "status": 201,
   "data": {
     "provable": {
-      "id": "221e9af9cc4a8213acfe09c01e5f7114a7eb5308c86acda4a28cbf5d4bd026e6",
-      "seed": "e04da864b32e75d040dc69e1131b32145d687552d0b408c05cf8cb5332b1df1a",
-      "hash": "ef2ad6fe87996fbebae577bce7b302537935d5f89e7d205e7aaf59767092f896",
-      "address": "3b31515be6a39e439972bb7eead9a85fc52e7e8651991aa19c9fc7208fb299d8",
-      "signature": "57a7c76561f4b4d4c46f94f92467f6e4b945d3e349745830c0df16b57a704065",
+      "id": "379ccc9a492f599a5a58d903b9abc5f1fa8b9ab726ce4a1739913d09026d50df",
+      "seed": "bf86c22cf6e6f95a2ee2331154084ec4987af07b03b7c915c4f3f391ff929a75",
+      "hash": "e60eeb289466f30ddf884e2268d1a173331508ff8d9c24dcf80101efb855d1e1",
+      "address": "90ed5ffab3172239924795160e9e9b51b86651d167743b6448352889aa4b72bb",
+      "signature": "21dd33005f4f7425cdcbfe793997dc42496d8377272b76ea159215d64246bf91",
       "chains": {},
       "previous": []
     },
-    "timestamp": 1577720355272,
-    "seed": "8b8cfbac416768fc9864647d03a6c129f2a9da4edc77cca416ce4eed2ea8e3c2",
+    "timestamp": 1581603187941,
+    "seed": "28249a823b0e0054fa2fb65d7b11f4d51f3a6fced6b5d617be9f12b4400945a9",
     "hash": "e0a44d3c544c8895dacc7c32952766ee4db44122af955826e45c9486639ef5e4",
     "address": "0x4592350babefcc849943db091b6c49f8b86f8aaa",
     "signature": "0xbcb94922257b69fb5bf7bee76be9110100b569290e234b580f6ca8a96af477c37708eaf951ad2032bd3f9c453dc4d74e0db03cd554356ef95baccf4ea0ea0d801b",
@@ -202,7 +202,7 @@ You can see that you have persisted 7 bytes in **_precedence_** (`data.bytes` fi
 To retrieve the original data you can run: 
 
 ```bash
-curl -XGET "$api/records/221e9af9cc4a8213acfe09c01e5f7114a7eb5308c86acda4a28cbf5d4bd026e6?data=true"
+curl -XGET "$api/records/379ccc9a492f599a5a58d903b9abc5f1fa8b9ab726ce4a1739913d09026d50df?data=true"
 ```
 
 ---
@@ -214,20 +214,20 @@ curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=tru
 ```
 ```json
 {
-  "took": 16,
+  "took": 22,
   "status": 201,
   "data": {
     "provable": {
-      "id": "7adad27552deca42ece20adc1c99b3772734c1349463c1ab6f9aec7d5d44af4b",
-      "seed": "e187da95539af2c93a6bdc0609936b2fe71a83cc68900ee1e94256cdce24cc31",
-      "hash": "720b1b99488f6be449888216f8b2b734384f65f89f53ea570d750f5b38f417bf",
-      "address": "659292e9fac4ce08dc64dd7bbee5431b9e407b4a5c90c482acde172cb2675e80",
-      "signature": "16d8d2d583afafd88b9e1555ffbe61ae40334d9f25e0150382c91e5f81b64233",
+      "id": "def79a8bc561159f63cbb3bbf69c3dede64dd54ba0702f9c3659b8718f254e86",
+      "seed": "0a1e15291ad9f1383c498a5582ef27e3a13162bfaa9eeba8de95c0417ecf3018",
+      "hash": "48c6840f4ff19b41918a9b8dd368bf3ba5c860e4a3009c9c9bdd9416915c4533",
+      "address": "5664dbe8b047529461c8777ef93fe70999d215bc40badab2b00faf956357dd8d",
+      "signature": "cf7f2e87b80affde07bd7435ce9f1ccd987e143ee9f635949a555aba586f997d",
       "chains": {},
       "previous": []
     },
-    "timestamp": 1577720368278,
-    "seed": "ceb790bca5e364eab305711fa03765585c4ea14eb83ae6dfd0b3963198d8c74d",
+    "timestamp": 1581603237215,
+    "seed": "233a28d4499d772136d356d6dd1626c09b88c903bd00d98ad88823391ef7fa00",
     "hash": "e0a44d3c544c8895dacc7c32952766ee4db44122af955826e45c9486639ef5e4",
     "address": "0x4592350babefcc849943db091b6c49f8b86f8aaa",
     "signature": "0xbcb94922257b69fb5bf7bee76be9110100b569290e234b580f6ca8a96af477c37708eaf951ad2032bd3f9c453dc4d74e0db03cd554356ef95baccf4ea0ea0d801b",
@@ -251,20 +251,20 @@ curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=tru
 
 ```json
 {
-  "took": 15,
+  "took": 23,
   "status": 201,
   "data": {
     "provable": {
-      "id": "33d56a97c18e38ca0c79208485f3097ea58e84cc6098980f238eeb94e071f214",
-      "seed": "9028fd93f55ef55ed28bc4bdeda79f0a9471641454a6983f48580439379ff8d9",
-      "hash": "a248379a1e025c2e26268906348d51eb1933d3b6b772d58a7afd7e62d43b56bb",
-      "address": "79fceac346ccb33f9e935a08b32fec0fb1334299a0966f0268e7a802ceb2eaa3",
-      "signature": "366f33704dcbc267293857ba12bd8c5d6cf75f2d0efab1d18f6e18dbc0072ce7",
+      "id": "c74b5cb9df676eeea0eb4eb4231d728d01db08a425f875813d32862554ceb8a5",
+      "seed": "6e6c265aeb7abad0f427f33b041670003e5f3b3e9da40723a29b10eb623c53b3",
+      "hash": "af6bf6af537704d86774a34562f1d06492ad6fa550ed5cc0e21a9005afdceb03",
+      "address": "eb3b87ede8b32df0704518d8d78f82b3d78812a47aa726f421e652961efc01d3",
+      "signature": "bb5d2f6cd2e6da726a925d9cc4de1a74163d99a301e315bf5aad8be437d27ccb",
       "chains": {},
       "previous": []
     },
-    "timestamp": 1577720379461,
-    "seed": "d143d0186d02e6aeeba216045dc9c31f6a5ea00edb277a6e23d17d36ce37c025",
+    "timestamp": 1581603250667,
+    "seed": "649066a2b9e0e97ecfc98cba6d59f466404360604f449a1f97597ea3407adcde",
     "hash": "085a57ddb929d1a2853aad31940d6e718918762b8db43f299e86fe732d13d6b9",
     "address": "0x4592350babefcc849943db091b6c49f8b86f8aaa",
     "signature": "0x0335865798e357d8dbe4a851f387e2f091be6eca16d3909711a0450eb030323a12cf602f31b1635add36f2bd67a4bd5a49e175ac86c828b811a06c30c49b3fc21c",
@@ -285,20 +285,20 @@ curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=tru
 
 ```json
 {
-  "took": 17,
+  "took": 22,
   "status": 201,
   "data": {
     "provable": {
       "id": "3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4",
-      "seed": "08c380616cdbe84d56285d2a8783ccf519a0ae997489e6e37d914ef0922fbd74",
-      "hash": "dbfe294e9f655e21f7205696eb8b944f92dea3202eb2c98f46dcb3cc77281c97",
-      "address": "48c60c9225d911fd18dcc988b05aae7b25f5d37ce236564798ec1e625a829c2d",
-      "signature": "6fd0fb182480081a82e001a9c79e87e04ddd06a8516f58a01f2914194ee3dbde",
+      "seed": "5ddddb5bac7af05cc4b3e47c3b058bd46f3fca3bb7007887a41a43df285a19da",
+      "hash": "bb4ae4119a99c11ef46319dd34f8c75d4f8b905784f3885de63c7155e2da29ee",
+      "address": "597126bf1738c0b77f11351272c89eaa4dee586cba3c15c374449a8bbf52d71f",
+      "signature": "950e834799d7af63f6326c4df1d7cd0eedaad2bfc10fee37a782a4c6116a0800",
       "chains": {},
       "previous": []
     },
-    "timestamp": 1577720391853,
-    "seed": "8ba9716fb0205c621b14960c1a2e51110b294c357216402f313caf7c52c19c51",
+    "timestamp": 1581603268065,
+    "seed": "546cc35f1c40b8215dcabdeeccf2eb7bbf2a772228351c897891e6147fe2e1ee",
     "hash": "3db104a9dc47163e43226d0b25c4cabf082d1813a80d4d217b75a9c2b1e49ae8",
     "address": "0x4592350babefcc849943db091b6c49f8b86f8aaa",
     "signature": "0x7c6d80cf86f8c5b096d1761eaedb9835896c0ccd839722d4197b268ba8e7c568154bf8bf701ba689dd68e5d8f3f7528d721c35ca87e79021a447587f2966d0c61b",
@@ -320,7 +320,7 @@ curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=tru
 
 ```json
 {
-  "took": 11,
+  "took": 21,
   "status": 409,
   "error": 3,
   "message": "Record \"3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4\" already exists"
@@ -337,20 +337,20 @@ curl -XGET "$api/records/3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745
 
 ```json
 {
-  "took": 11,
+  "took": 4,
   "status": 200,
   "data": {
     "provable": {
       "id": "3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4",
-      "seed": "08c380616cdbe84d56285d2a8783ccf519a0ae997489e6e37d914ef0922fbd74",
-      "hash": "dbfe294e9f655e21f7205696eb8b944f92dea3202eb2c98f46dcb3cc77281c97",
-      "address": "48c60c9225d911fd18dcc988b05aae7b25f5d37ce236564798ec1e625a829c2d",
-      "signature": "6fd0fb182480081a82e001a9c79e87e04ddd06a8516f58a01f2914194ee3dbde",
+      "seed": "5ddddb5bac7af05cc4b3e47c3b058bd46f3fca3bb7007887a41a43df285a19da",
+      "hash": "bb4ae4119a99c11ef46319dd34f8c75d4f8b905784f3885de63c7155e2da29ee",
+      "address": "597126bf1738c0b77f11351272c89eaa4dee586cba3c15c374449a8bbf52d71f",
+      "signature": "950e834799d7af63f6326c4df1d7cd0eedaad2bfc10fee37a782a4c6116a0800",
       "chains": {},
       "previous": []
     },
-    "timestamp": 1577720391853,
-    "seed": "8ba9716fb0205c621b14960c1a2e51110b294c357216402f313caf7c52c19c51",
+    "timestamp": 1581603268065,
+    "seed": "546cc35f1c40b8215dcabdeeccf2eb7bbf2a772228351c897891e6147fe2e1ee",
     "hash": "3db104a9dc47163e43226d0b25c4cabf082d1813a80d4d217b75a9c2b1e49ae8",
     "address": "0x4592350babefcc849943db091b6c49f8b86f8aaa",
     "signature": "0x7c6d80cf86f8c5b096d1761eaedb9835896c0ccd839722d4197b268ba8e7c568154bf8bf701ba689dd68e5d8f3f7528d721c35ca87e79021a447587f2966d0c61b",
@@ -370,12 +370,12 @@ curl -XPOST "$api/blocks?pretty=true"
 
 ```json
 {
-  "took": 86,
+  "took": 136,
   "status": 201,
   "data": {
-    "root": "67dd95107b4e561e764deb01ae297ed67e447065f0ec7560dbdeab555d83dc99",
+    "root": "492afc4b335a2ec63ee03ca8f9e38cf05142eb865a30518a6a33d36e75b9d4ca",
     "index": 0,
-    "timestamp": 1577720428000,
+    "timestamp": 1581603314203,
     "count": 5,
     "previous": null
   }
@@ -390,20 +390,20 @@ curl -XGET "$api/records/3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745
 
 ```json
 {
-  "took": 19,
+  "took": 20,
   "status": 200,
   "data": {
     "provable": {
       "id": "3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4",
-      "seed": "08c380616cdbe84d56285d2a8783ccf519a0ae997489e6e37d914ef0922fbd74",
-      "hash": "dbfe294e9f655e21f7205696eb8b944f92dea3202eb2c98f46dcb3cc77281c97",
-      "address": "48c60c9225d911fd18dcc988b05aae7b25f5d37ce236564798ec1e625a829c2d",
-      "signature": "6fd0fb182480081a82e001a9c79e87e04ddd06a8516f58a01f2914194ee3dbde",
+      "seed": "5ddddb5bac7af05cc4b3e47c3b058bd46f3fca3bb7007887a41a43df285a19da",
+      "hash": "bb4ae4119a99c11ef46319dd34f8c75d4f8b905784f3885de63c7155e2da29ee",
+      "address": "597126bf1738c0b77f11351272c89eaa4dee586cba3c15c374449a8bbf52d71f",
+      "signature": "950e834799d7af63f6326c4df1d7cd0eedaad2bfc10fee37a782a4c6116a0800",
       "chains": {},
       "previous": []
     },
-    "timestamp": 1577720391853,
-    "seed": "8ba9716fb0205c621b14960c1a2e51110b294c357216402f313caf7c52c19c51",
+    "timestamp": 1581603268065,
+    "seed": "546cc35f1c40b8215dcabdeeccf2eb7bbf2a772228351c897891e6147fe2e1ee",
     "hash": "3db104a9dc47163e43226d0b25c4cabf082d1813a80d4d217b75a9c2b1e49ae8",
     "address": "0x4592350babefcc849943db091b6c49f8b86f8aaa",
     "signature": "0x7c6d80cf86f8c5b096d1761eaedb9835896c0ccd839722d4197b268ba8e7c568154bf8bf701ba689dd68e5d8f3f7528d721c35ca87e79021a447587f2966d0c61b",
@@ -412,11 +412,11 @@ curl -XGET "$api/records/3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745
       "bytes": 7
     },
     "block": {
-      "root": "67dd95107b4e561e764deb01ae297ed67e447065f0ec7560dbdeab555d83dc99",
+      "root": "492afc4b335a2ec63ee03ca8f9e38cf05142eb865a30518a6a33d36e75b9d4ca",
       "proof": [
-        "f8918080a0855a3f11b2dc89e3f59ec34108b1e7cd53410d2b57a0842ed0c00bf425928135a0bbc1a92a348ca32ffc159830c67179cd9efd99287231ceb948496c3e88cf1fa9808080a0278dea63527c2b7d1c49f4f6e6758384c5c4d12f5385f051c29a72cc198172a880808080a09b345d14fe65a3b8e5951e167891fa1bebb075c5845f74338a284b4e59a0267680808080",
-        "f851808080a01adacbf2fe70dbd1ed13fc56eec04304caeb542c3a0769d493b904dfd155b9cf808080808080a08909229ff08c6d78c6578d558126c77b3d9190d6b324a7411edd45adb3b8199b808080808080",
-        "f842a02031d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4a04e35dc0823e18afeb44538400ea6e62beada0e335e6408094148e38ca99a4035"
+        "f8b1808080a00c1056b897b4640e06ad680f87d7047b30dfa52101f2d0153cfd97472d096298808080a09b5a1ac370a7bf87c32b11531335b0295447cee935d1c57082f846f0971cbb4580a07b02273010bf63b05771d076d013a7897c3113285337318f8f3c699ad44ecbe28080a0a1f492527a48e66733a1e3f4e174144c2e8f09240ef957fd7450379f0c47477aa0f3768543968ef1807702923f32a2728b3d008bbe5a9bc5a7256c5ffa740c7399808080",
+        "f85180808080808080a0bb5a098d26973f368c317051bc206a88d00ca89a17931a6633ac7af69781bb3a8080a0ffdd3002866ee61e09c0746c65ed3018a1672cb79f76ee3f402ac92ac194f452808080808080",
+        "f842a02031d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4a05f02808fad2130649a54e6fd65750279e36aca184f3f18037a04f2bdf813a5cc"
       ]
     }
   }
@@ -439,7 +439,7 @@ curl -XDELETE "$api/records/3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30
 
 ```json
 {
-  "took": 11,
+  "took": 12,
   "status": 200,
   "data": {
     "bytes": 7
@@ -460,25 +460,25 @@ curl -XGET "$api/records/3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745
   "data": {
     "provable": {
       "id": "3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4",
-      "seed": "08c380616cdbe84d56285d2a8783ccf519a0ae997489e6e37d914ef0922fbd74",
-      "hash": "dbfe294e9f655e21f7205696eb8b944f92dea3202eb2c98f46dcb3cc77281c97",
-      "address": "48c60c9225d911fd18dcc988b05aae7b25f5d37ce236564798ec1e625a829c2d",
-      "signature": "6fd0fb182480081a82e001a9c79e87e04ddd06a8516f58a01f2914194ee3dbde",
+      "seed": "5ddddb5bac7af05cc4b3e47c3b058bd46f3fca3bb7007887a41a43df285a19da",
+      "hash": "bb4ae4119a99c11ef46319dd34f8c75d4f8b905784f3885de63c7155e2da29ee",
+      "address": "597126bf1738c0b77f11351272c89eaa4dee586cba3c15c374449a8bbf52d71f",
+      "signature": "950e834799d7af63f6326c4df1d7cd0eedaad2bfc10fee37a782a4c6116a0800",
       "chains": {},
       "previous": []
     },
-    "timestamp": 1577720391853,
-    "seed": "8ba9716fb0205c621b14960c1a2e51110b294c357216402f313caf7c52c19c51",
+    "timestamp": 1581603268065,
+    "seed": "546cc35f1c40b8215dcabdeeccf2eb7bbf2a772228351c897891e6147fe2e1ee",
     "hash": "3db104a9dc47163e43226d0b25c4cabf082d1813a80d4d217b75a9c2b1e49ae8",
     "address": "0x4592350babefcc849943db091b6c49f8b86f8aaa",
     "signature": "0x7c6d80cf86f8c5b096d1761eaedb9835896c0ccd839722d4197b268ba8e7c568154bf8bf701ba689dd68e5d8f3f7528d721c35ca87e79021a447587f2966d0c61b",
     "chains": {},
     "block": {
-      "root": "67dd95107b4e561e764deb01ae297ed67e447065f0ec7560dbdeab555d83dc99",
+      "root": "492afc4b335a2ec63ee03ca8f9e38cf05142eb865a30518a6a33d36e75b9d4ca",
       "proof": [
-        "f8918080a0855a3f11b2dc89e3f59ec34108b1e7cd53410d2b57a0842ed0c00bf425928135a0bbc1a92a348ca32ffc159830c67179cd9efd99287231ceb948496c3e88cf1fa9808080a0278dea63527c2b7d1c49f4f6e6758384c5c4d12f5385f051c29a72cc198172a880808080a09b345d14fe65a3b8e5951e167891fa1bebb075c5845f74338a284b4e59a0267680808080",
-        "f851808080a01adacbf2fe70dbd1ed13fc56eec04304caeb542c3a0769d493b904dfd155b9cf808080808080a08909229ff08c6d78c6578d558126c77b3d9190d6b324a7411edd45adb3b8199b808080808080",
-        "f842a02031d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4a04e35dc0823e18afeb44538400ea6e62beada0e335e6408094148e38ca99a4035"
+        "f8b1808080a00c1056b897b4640e06ad680f87d7047b30dfa52101f2d0153cfd97472d096298808080a09b5a1ac370a7bf87c32b11531335b0295447cee935d1c57082f846f0971cbb4580a07b02273010bf63b05771d076d013a7897c3113285337318f8f3c699ad44ecbe28080a0a1f492527a48e66733a1e3f4e174144c2e8f09240ef957fd7450379f0c47477aa0f3768543968ef1807702923f32a2728b3d008bbe5a9bc5a7256c5ffa740c7399808080",
+        "f85180808080808080a0bb5a098d26973f368c317051bc206a88d00ca89a17931a6633ac7af69781bb3a8080a0ffdd3002866ee61e09c0746c65ed3018a1672cb79f76ee3f402ac92ac194f452808080808080",
+        "f842a02031d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4a05f02808fad2130649a54e6fd65750279e36aca184f3f18037a04f2bdf813a5cc"
       ]
     }
   }
@@ -488,12 +488,12 @@ curl -XGET "$api/records/3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745
 The `data` field has been removed from the response and if you try to get the original data, you'll get an error.
 
 ```bash
-curl -XGET "$api/records/3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4?data=true"
+curl -XGET "$api/records/3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4?pretty=true&data=true"
 ```
 
 ```json
 {
-  "took": 3,
+  "took": 2,
   "status": 404,
   "error": 5,
   "message": "Record \"3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4\" data not found"
@@ -510,22 +510,22 @@ curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=tru
 
 ```json
 {
-  "took": 38,
+  "took": 26,
   "status": 201,
   "data": {
     "provable": {
       "id": "75bdb5a188a281c9576331b5573d5be50f7802d92cc591d9dbbbfbcb7ee42de6",
-      "seed": "fdad1996ccf9632fb1a198c2a28865181845d2568f6b8bea7827e3b4903d02eb",
-      "hash": "ccce3def280660e3fe5713fe0b7a1a6e2e18172a06c099d5d659ff37851c051e",
-      "address": "6e1feebbc044d00ffd9abebf0a4d794cda2675ba609e654cec99bf2765aa2b25",
-      "signature": "4b6927e2fb4f6928765d56d09608b11b8e071f0cbc02176a5cb956a94e5408c5",
+      "seed": "3f3b5a7587f65e41568da013b1be5eb88a3c2a3de2262d5e26370360d1bb3040",
+      "hash": "e6251a3cac5199bae9b15a40d7fa6f8a7f67a146453780fe155d320b75747a7c",
+      "address": "2c8aa725ff05cf07c944aa4353fbd24c3233445e937fd98fcfbb85ae24772199",
+      "signature": "54b19c2cb49d1692e08a1d59a643f390258f063e132ae7762358a9c0d8642a37",
       "chains": {},
       "previous": [
         "3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4"
       ]
     },
-    "timestamp": 1577720486458,
-    "seed": "c3949e31c1293bcb2eb47ded43c97848af99063a4b272caa232e2ace4ac193e8",
+    "timestamp": 1581603403048,
+    "seed": "a2e03df0ca1b39409efac8d080b5c27905d7cf6d4f71c85dd98ec18b298ce4da",
     "hash": "5b193ff1cf8ac2f1aabe5fe7de85debb29e8f337bc89b135a590c1073800cf80",
     "address": "0x4592350babefcc849943db091b6c49f8b86f8aaa",
     "signature": "0xa6bbc4cc1e50088492dc482801c4d4695d14f367b3b10e34f93a962e1a8213b634b7bfa6a95edc6bbc25a359cf9a4554d6dee72078a671f401b6aa667dcb1ab31c",
@@ -551,22 +551,22 @@ curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=tru
 
 ```json
 {
-  "took": 21,
+  "took": 33,
   "status": 201,
   "data": {
     "provable": {
       "id": "893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951",
-      "seed": "0027fff37fc9d2aef9141bdb4ad4eeea531d312a832608cb855e4e9147825e85",
-      "hash": "a0f150c87aaf0e2892082731c385109ce1e3a1a770a4da1dbc76dd6272aa3e41",
-      "address": "e616378533e42c4b900ff0b384e1daf6ff96bce5e64e8afe9e84fdda8f1c34c0",
-      "signature": "5e43ee945503851ae742c43ffbcc713a9a1074527920fa35771adf27d5c3523b",
+      "seed": "939703f6ac98fcf363abb2b64372cccbc511c765213d66e5853469175560f05a",
+      "hash": "4840c2316a647ac967cb8f042984540249d12d87755019d738e072a737f9448f",
+      "address": "060746bf4ad970f4df35cc32a6a4cc933395fad281c408b1b0d68000400e7d9d",
+      "signature": "677d1a583002e2d82f45003b89a80ed00d6b1ba6703b667039d6a2f8466c281c",
       "chains": {
-        "2ebf3f9e09fc450246fd98a4a1e08f7bb3db63be94f8cb6098626b8fbc73f0cd": null
+        "768ec6a3601806769dcd92fdbb02dd49996dec75ac00f5e8dacc1092678013d5": null
       },
       "previous": []
     },
-    "timestamp": 1577720500976,
-    "seed": "4b68e995ed56df68db4ac722898659ff8bc8e1760531fcc0e2cad18f3e258a44",
+    "timestamp": 1581603418428,
+    "seed": "a8f49360c0795d9f3461df2c93d21ddd5cd3e393329c29ea153013f0d0d78b2a",
     "hash": "ed914881e913845413125b682876d976b9eab7335980726ddc59f785beb4d5ad",
     "address": "0x4592350babefcc849943db091b6c49f8b86f8aaa",
     "signature": "0xa1d9b27cb9cbcdda4172a373ef4e82f13f193d837e2e21b760685d099354ef7a7e3250470af7e33ffe6b77aa27b0d509b00e311917249a022abf4cc8469506751b",
@@ -587,24 +587,24 @@ curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=tru
 
 ```json
 {
-  "took": 14,
+  "took": 48,
   "status": 201,
   "data": {
     "provable": {
       "id": "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
-      "seed": "27ecfd2dc983cb30542a6fefd06cfb00822d8029c8bdd09e4e384d755ec5e889",
-      "hash": "8eb78918e4d044f83cce64b16712fbeadbb4b78fb1ea6ea2ddfcb695117e578f",
-      "address": "1c110178b58af05d6434feba619e004194e7192ce24ec5d1cd3ebc0d68890387",
-      "signature": "34043a0fb429081c9db432aa45b8dc52632befc2d7b97e06bec3497759f91f61",
+      "seed": "6707e7ed8518526c44a7cbd89be41b1d76b42fa2ee1cf31e5642450359c00f02",
+      "hash": "596bd376dcb2a0cedc7f566c11219ca7c4292067b7da54aaf078126b0924f4c2",
+      "address": "dae8fe34f9c31c16e4e0d71edbf144cb24286b673e40cc32c370ca49d4246ced",
+      "signature": "3bdb5b99a714fa2dc16e441de8029faa83e03fe21787733675939ad11bec2656",
       "chains": {
-        "ab5f95a93f7b1f236f001350b739bfb1c00f564b0f60b5ac5ef8edc119a2fb92": "893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951"
+        "844997abe2fd49b63ba43093a8efb02b4f5b13c7b0e31c3cd5146b0fa2f22b60": "893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951"
       },
       "previous": [
         "893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951"
       ]
     },
-    "timestamp": 1577720513185,
-    "seed": "2bc9b60fe5fd33615b493783ef1d3bb56add2c0735fe9856ef0e406aef3a6c16",
+    "timestamp": 1581603431733,
+    "seed": "3de1e276b7dfdea38ce0c356fcc30e97fbbd3b3f57f48c7d9a9852207d1f8705",
     "hash": "1bb1c73103ef6ae888ab45afa617f8ec63f21bf959a284363d7a83055ac4f87d",
     "address": "0x4592350babefcc849943db091b6c49f8b86f8aaa",
     "signature": "0x13f6c3fbc6513cd9dbeca59878613ea10f2356bf5fcc75d15b8993ceb5cb56156b11668c316505ba817f8ab2a0edb24b555de3442865ee336f0b9f3cad8634ae1b",
@@ -621,11 +621,11 @@ curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=tru
 The field `chains` contains the key `chain1` whose value is the record identifier of the previously inserted record. The record has been appended at the end of the chain and the label `chain1` now refers to the newly inserted record. This information is provable because it is part of the record definition. The key stored in `provable.chains` has been obfuscated to avoid any data leak. `chains.chain1` can be removed by deleting the entire chain.
 
 We can check that:
-- the obfuscated fingerprint of `chain1` is equal to `93c8d170cdd9471bbef6f0a8a7b6d1ca69cdd596ced67e537bb9fe5a125a735e`:
+- the obfuscated fingerprint of `chain1` is equal to `844997abe2fd49b63ba43093a8efb02b4f5b13c7b0e31c3cd5146b0fa2f22b60`:
 ```bash
-echo -n "2bc9b60fe5fd33615b493783ef1d3bb56add2c0735fe9856ef0e406aef3a6c16 chain1" | sha256sum
+echo -n "3de1e276b7dfdea38ce0c356fcc30e97fbbd3b3f57f48c7d9a9852207d1f8705 chain1" | sha256sum
 ```
-- the `chains.chain1` value is equal to the `provable.chains.ab5f95a93f7b1f236f001350b739bfb1c00f564b0f60b5ac5ef8edc119a2fb92` value: `893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951`.
+- the `chains.chain1` value is equal to the `provable.chains.844997abe2fd49b63ba43093a8efb02b4f5b13c7b0e31c3cd5146b0fa2f22b60` value: `893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951`.
 
 ---
 
@@ -642,19 +642,19 @@ curl -XGET "$api/chains/chain1?pretty=true"
   "data": {
     "provable": {
       "id": "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
-      "seed": "27ecfd2dc983cb30542a6fefd06cfb00822d8029c8bdd09e4e384d755ec5e889",
-      "hash": "8eb78918e4d044f83cce64b16712fbeadbb4b78fb1ea6ea2ddfcb695117e578f",
-      "address": "1c110178b58af05d6434feba619e004194e7192ce24ec5d1cd3ebc0d68890387",
-      "signature": "34043a0fb429081c9db432aa45b8dc52632befc2d7b97e06bec3497759f91f61",
+      "seed": "6707e7ed8518526c44a7cbd89be41b1d76b42fa2ee1cf31e5642450359c00f02",
+      "hash": "596bd376dcb2a0cedc7f566c11219ca7c4292067b7da54aaf078126b0924f4c2",
+      "address": "dae8fe34f9c31c16e4e0d71edbf144cb24286b673e40cc32c370ca49d4246ced",
+      "signature": "3bdb5b99a714fa2dc16e441de8029faa83e03fe21787733675939ad11bec2656",
       "chains": {
-        "ab5f95a93f7b1f236f001350b739bfb1c00f564b0f60b5ac5ef8edc119a2fb92": "893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951"
+        "844997abe2fd49b63ba43093a8efb02b4f5b13c7b0e31c3cd5146b0fa2f22b60": "893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951"
       },
       "previous": [
         "893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951"
       ]
     },
-    "timestamp": 1577720513185,
-    "seed": "2bc9b60fe5fd33615b493783ef1d3bb56add2c0735fe9856ef0e406aef3a6c16",
+    "timestamp": 1581603431733,
+    "seed": "3de1e276b7dfdea38ce0c356fcc30e97fbbd3b3f57f48c7d9a9852207d1f8705",
     "hash": "1bb1c73103ef6ae888ab45afa617f8ec63f21bf959a284363d7a83055ac4f87d",
     "address": "0x4592350babefcc849943db091b6c49f8b86f8aaa",
     "signature": "0x13f6c3fbc6513cd9dbeca59878613ea10f2356bf5fcc75d15b8993ceb5cb56156b11668c316505ba817f8ab2a0edb24b555de3442865ee336f0b9f3cad8634ae1b",
@@ -678,18 +678,18 @@ curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=tru
 
 ```json
 {
-  "took": 42,
+  "took": 51,
   "status": 201,
   "data": {
     "provable": {
-      "id": "669fd9cb3d5309f3b1d57eb5040f9fc8a5cc8a9154a2820fb64c0a9b53824e3e",
-      "seed": "88d33c678157f4706838fdb25d4f70dfb3e53c4e8de84481a2c1684a2664048c",
-      "hash": "6fa5a97264ba74de4b1f693a3f5f366486be5deca2ace8682090114ad9f26497",
-      "address": "d1033c0e8ae08bd7e59616b98b882e9f8509cfea7bf701e799e05ed8414cf9dd",
-      "signature": "4f8b7017375702ba271ee91d7bcb127792a7006d2070f7c4ddbafe0b891ea9e2",
+      "id": "86dfff5fb903bfbe8001e559b2f507b6572d885f97c20a0d3f45f3fcf6ffddd4",
+      "seed": "7a40a269e654c1a1336cfdea45616ba2a19be7f46849a4c58d8c29a1707d00ca",
+      "hash": "2e3d364cdbfdf81e01a476b6f3300a71506ca649229f98bcf536dbbd54f5ed8b",
+      "address": "7e4d994fd3360a1f3a0438d292a47cf3eed069f8a042217d32d0704fb25da3c8",
+      "signature": "efef2a8d2c42089bcdafabe31391d5f54b828dc82b3e36d6279121854845f79e",
       "chains": {
-        "01687d2ddc071e336b354d371bfc7f6b732e38177aeea30afd7cc18a8b5e15df": "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
-        "8e9d117d4aae595f770ad81193b23c0c0557b3915ce8ffc12e15fb67c02b9d35": null
+        "6371d71c19fdbc7b7176582ee03c3fe0343c6a40ec813871977bc95700873529": "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
+        "68692e91fbf50945c50e319f3f06ac1b20db9b0536d167c8f5d91a8762a98c1b": null
       },
       "previous": [
         "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
@@ -697,8 +697,8 @@ curl -XPOST -H "Content-Type: application/octet-stream" "$api/records?pretty=tru
         "893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951"
       ]
     },
-    "timestamp": 1577720598023,
-    "seed": "3480ff0782d91ca535a55a7c8445c86ae11d4a31778b1783e728f3f54f5baa76",
+    "timestamp": 1581604162861,
+    "seed": "3d75a9de0d1f5fa2eb1ebaa68fe5c4e0f69734872d49d4b2423fb57f927eb249",
     "hash": "52d11cc7df0271d87bdd6c70e17a8a1ea878ac96dd9c0a8d5860df87cefbdb8e",
     "address": "0x4592350babefcc849943db091b6c49f8b86f8aaa",
     "signature": "0x9512cf941a081db411960054d00a204e0cde97f34c477576b50aa21be15d43c04ac1f514babd0be4b7f39123e8594da32caf527e5a4aeed316e65ad570c9a1b41b",
@@ -725,18 +725,18 @@ curl -XGET "$api/chains/chain1?pretty=true"
 
 ```json
 {
-  "took": 24,
+  "took": 6,
   "status": 200,
   "data": {
     "provable": {
-      "id": "669fd9cb3d5309f3b1d57eb5040f9fc8a5cc8a9154a2820fb64c0a9b53824e3e",
-      "seed": "88d33c678157f4706838fdb25d4f70dfb3e53c4e8de84481a2c1684a2664048c",
-      "hash": "6fa5a97264ba74de4b1f693a3f5f366486be5deca2ace8682090114ad9f26497",
-      "address": "d1033c0e8ae08bd7e59616b98b882e9f8509cfea7bf701e799e05ed8414cf9dd",
-      "signature": "4f8b7017375702ba271ee91d7bcb127792a7006d2070f7c4ddbafe0b891ea9e2",
+      "id": "86dfff5fb903bfbe8001e559b2f507b6572d885f97c20a0d3f45f3fcf6ffddd4",
+      "seed": "7a40a269e654c1a1336cfdea45616ba2a19be7f46849a4c58d8c29a1707d00ca",
+      "hash": "2e3d364cdbfdf81e01a476b6f3300a71506ca649229f98bcf536dbbd54f5ed8b",
+      "address": "7e4d994fd3360a1f3a0438d292a47cf3eed069f8a042217d32d0704fb25da3c8",
+      "signature": "efef2a8d2c42089bcdafabe31391d5f54b828dc82b3e36d6279121854845f79e",
       "chains": {
-        "01687d2ddc071e336b354d371bfc7f6b732e38177aeea30afd7cc18a8b5e15df": "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
-        "8e9d117d4aae595f770ad81193b23c0c0557b3915ce8ffc12e15fb67c02b9d35": null
+        "6371d71c19fdbc7b7176582ee03c3fe0343c6a40ec813871977bc95700873529": "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
+        "68692e91fbf50945c50e319f3f06ac1b20db9b0536d167c8f5d91a8762a98c1b": null
       },
       "previous": [
         "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
@@ -744,8 +744,8 @@ curl -XGET "$api/chains/chain1?pretty=true"
         "893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951"
       ]
     },
-    "timestamp": 1577720598023,
-    "seed": "3480ff0782d91ca535a55a7c8445c86ae11d4a31778b1783e728f3f54f5baa76",
+    "timestamp": 1581604162861,
+    "seed": "3d75a9de0d1f5fa2eb1ebaa68fe5c4e0f69734872d49d4b2423fb57f927eb249",
     "hash": "52d11cc7df0271d87bdd6c70e17a8a1ea878ac96dd9c0a8d5860df87cefbdb8e",
     "address": "0x4592350babefcc849943db091b6c49f8b86f8aaa",
     "signature": "0x9512cf941a081db411960054d00a204e0cde97f34c477576b50aa21be15d43c04ac1f514babd0be4b7f39123e8594da32caf527e5a4aeed316e65ad570c9a1b41b",
@@ -766,18 +766,18 @@ curl -XGET "$api/chains/chain2?pretty=true"
 
 ```json
 {
-  "took": 6,
+  "took": 7,
   "status": 200,
   "data": {
     "provable": {
-      "id": "669fd9cb3d5309f3b1d57eb5040f9fc8a5cc8a9154a2820fb64c0a9b53824e3e",
-      "seed": "88d33c678157f4706838fdb25d4f70dfb3e53c4e8de84481a2c1684a2664048c",
-      "hash": "6fa5a97264ba74de4b1f693a3f5f366486be5deca2ace8682090114ad9f26497",
-      "address": "d1033c0e8ae08bd7e59616b98b882e9f8509cfea7bf701e799e05ed8414cf9dd",
-      "signature": "4f8b7017375702ba271ee91d7bcb127792a7006d2070f7c4ddbafe0b891ea9e2",
+      "id": "86dfff5fb903bfbe8001e559b2f507b6572d885f97c20a0d3f45f3fcf6ffddd4",
+      "seed": "7a40a269e654c1a1336cfdea45616ba2a19be7f46849a4c58d8c29a1707d00ca",
+      "hash": "2e3d364cdbfdf81e01a476b6f3300a71506ca649229f98bcf536dbbd54f5ed8b",
+      "address": "7e4d994fd3360a1f3a0438d292a47cf3eed069f8a042217d32d0704fb25da3c8",
+      "signature": "efef2a8d2c42089bcdafabe31391d5f54b828dc82b3e36d6279121854845f79e",
       "chains": {
-        "01687d2ddc071e336b354d371bfc7f6b732e38177aeea30afd7cc18a8b5e15df": "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
-        "8e9d117d4aae595f770ad81193b23c0c0557b3915ce8ffc12e15fb67c02b9d35": null
+        "6371d71c19fdbc7b7176582ee03c3fe0343c6a40ec813871977bc95700873529": "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
+        "68692e91fbf50945c50e319f3f06ac1b20db9b0536d167c8f5d91a8762a98c1b": null
       },
       "previous": [
         "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
@@ -785,8 +785,8 @@ curl -XGET "$api/chains/chain2?pretty=true"
         "893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951"
       ]
     },
-    "timestamp": 1577720598023,
-    "seed": "3480ff0782d91ca535a55a7c8445c86ae11d4a31778b1783e728f3f54f5baa76",
+    "timestamp": 1581604162861,
+    "seed": "3d75a9de0d1f5fa2eb1ebaa68fe5c4e0f69734872d49d4b2423fb57f927eb249",
     "hash": "52d11cc7df0271d87bdd6c70e17a8a1ea878ac96dd9c0a8d5860df87cefbdb8e",
     "address": "0x4592350babefcc849943db091b6c49f8b86f8aaa",
     "signature": "0x9512cf941a081db411960054d00a204e0cde97f34c477576b50aa21be15d43c04ac1f514babd0be4b7f39123e8594da32caf527e5a4aeed316e65ad570c9a1b41b",
@@ -836,7 +836,7 @@ curl -XGET "$api/chains/chain1?pretty=true"
 
 ```json
 {
-  "took": 4,
+  "took": 6,
   "status": 404,
   "error": 7,
   "message": "Chain \"chain1\" not found"
@@ -849,18 +849,18 @@ curl -XGET "$api/chains/chain2?pretty=true"
 
 ```json
 {
-  "took": 11,
+  "took": 8,
   "status": 200,
   "data": {
     "provable": {
-      "id": "669fd9cb3d5309f3b1d57eb5040f9fc8a5cc8a9154a2820fb64c0a9b53824e3e",
-      "seed": "88d33c678157f4706838fdb25d4f70dfb3e53c4e8de84481a2c1684a2664048c",
-      "hash": "6fa5a97264ba74de4b1f693a3f5f366486be5deca2ace8682090114ad9f26497",
-      "address": "d1033c0e8ae08bd7e59616b98b882e9f8509cfea7bf701e799e05ed8414cf9dd",
-      "signature": "4f8b7017375702ba271ee91d7bcb127792a7006d2070f7c4ddbafe0b891ea9e2",
+      "id": "86dfff5fb903bfbe8001e559b2f507b6572d885f97c20a0d3f45f3fcf6ffddd4",
+      "seed": "7a40a269e654c1a1336cfdea45616ba2a19be7f46849a4c58d8c29a1707d00ca",
+      "hash": "2e3d364cdbfdf81e01a476b6f3300a71506ca649229f98bcf536dbbd54f5ed8b",
+      "address": "7e4d994fd3360a1f3a0438d292a47cf3eed069f8a042217d32d0704fb25da3c8",
+      "signature": "efef2a8d2c42089bcdafabe31391d5f54b828dc82b3e36d6279121854845f79e",
       "chains": {
-        "01687d2ddc071e336b354d371bfc7f6b732e38177aeea30afd7cc18a8b5e15df": "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
-        "8e9d117d4aae595f770ad81193b23c0c0557b3915ce8ffc12e15fb67c02b9d35": null
+        "6371d71c19fdbc7b7176582ee03c3fe0343c6a40ec813871977bc95700873529": "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
+        "68692e91fbf50945c50e319f3f06ac1b20db9b0536d167c8f5d91a8762a98c1b": null
       },
       "previous": [
         "44d2fd22cebf91d4375260ae12565afa83cf18f24873f956728166c603091dd3",
@@ -868,8 +868,8 @@ curl -XGET "$api/chains/chain2?pretty=true"
         "893f0b2b05ed0013789be0dfa521575f243d083c5a2654c60f948eef1ce9b951"
       ]
     },
-    "timestamp": 1577720598023,
-    "seed": "3480ff0782d91ca535a55a7c8445c86ae11d4a31778b1783e728f3f54f5baa76",
+    "timestamp": 1581604162861,
+    "seed": "3d75a9de0d1f5fa2eb1ebaa68fe5c4e0f69734872d49d4b2423fb57f927eb249",
     "hash": "52d11cc7df0271d87bdd6c70e17a8a1ea878ac96dd9c0a8d5860df87cefbdb8e",
     "address": "0x4592350babefcc849943db091b6c49f8b86f8aaa",
     "signature": "0x9512cf941a081db411960054d00a204e0cde97f34c477576b50aa21be15d43c04ac1f514babd0be4b7f39123e8594da32caf527e5a4aeed316e65ad570c9a1b41b",
@@ -886,22 +886,22 @@ curl -XGET "$api/records/75bdb5a188a281c9576331b5573d5be50f7802d92cc591d9dbbbfbc
 
 ```json
 {
-  "took": 7,
+  "took": 11,
   "status": 200,
   "data": {
     "provable": {
       "id": "75bdb5a188a281c9576331b5573d5be50f7802d92cc591d9dbbbfbcb7ee42de6",
-      "seed": "fdad1996ccf9632fb1a198c2a28865181845d2568f6b8bea7827e3b4903d02eb",
-      "hash": "ccce3def280660e3fe5713fe0b7a1a6e2e18172a06c099d5d659ff37851c051e",
-      "address": "6e1feebbc044d00ffd9abebf0a4d794cda2675ba609e654cec99bf2765aa2b25",
-      "signature": "4b6927e2fb4f6928765d56d09608b11b8e071f0cbc02176a5cb956a94e5408c5",
+      "seed": "3f3b5a7587f65e41568da013b1be5eb88a3c2a3de2262d5e26370360d1bb3040",
+      "hash": "e6251a3cac5199bae9b15a40d7fa6f8a7f67a146453780fe155d320b75747a7c",
+      "address": "2c8aa725ff05cf07c944aa4353fbd24c3233445e937fd98fcfbb85ae24772199",
+      "signature": "54b19c2cb49d1692e08a1d59a643f390258f063e132ae7762358a9c0d8642a37",
       "chains": {},
       "previous": [
         "3a31d56747785fafe73bc6745a1d21c6b8c38d14b7573fa3fe30745aded1e2c4"
       ]
     },
-    "timestamp": 1577720486458,
-    "seed": "c3949e31c1293bcb2eb47ded43c97848af99063a4b272caa232e2ace4ac193e8",
+    "timestamp": 1581603403048,
+    "seed": "a2e03df0ca1b39409efac8d080b5c27905d7cf6d4f71c85dd98ec18b298ce4da",
     "hash": "5b193ff1cf8ac2f1aabe5fe7de85debb29e8f337bc89b135a590c1073800cf80",
     "address": "0x4592350babefcc849943db091b6c49f8b86f8aaa",
     "signature": "0xa6bbc4cc1e50088492dc482801c4d4695d14f367b3b10e34f93a962e1a8213b634b7bfa6a95edc6bbc25a359cf9a4554d6dee72078a671f401b6aa667dcb1ab31c",
@@ -925,19 +925,19 @@ curl -XPOST "$api/blocks?pretty=true&max=1"
 
 ```json
 {
-  "took": 51,
+  "took": 96,
   "status": 201,
   "data": {
-    "root": "2aeafe3bd211dfc26469a1f8d62a266fe57051d540953bb0e5fa54048c9da80c",
+    "root": "11a6c4cca99fbb0f55dbbb9c53c217167e43dc91d28e0538e51d8e4d8d41bcd0",
     "index": 1,
-    "timestamp": 1577720790807,
+    "timestamp": 1581604277882,
     "count": 1,
     "previous": {
-      "root": "67dd95107b4e561e764deb01ae297ed67e447065f0ec7560dbdeab555d83dc99",
+      "root": "492afc4b335a2ec63ee03ca8f9e38cf05142eb865a30518a6a33d36e75b9d4ca",
       "proof": [
-        "e217a0c29b52521f885b86548c021a737eca1fbceb25745526b45b389d4fd356fe989e",
-        "f851a0e11362386708bf7159efc6b1a13f69a2ec4824101191826ec2b7e67eff6670c680808080a08f7aad3775fadcc05056e5d52593e48f18ad895c1646167bf89aeb63bfd989508080808080808080808080",
-        "ea8820726576696f7573a067dd95107b4e561e764deb01ae297ed67e447065f0ec7560dbdeab555d83dc99"
+        "e217a0d807718f9cae760e829d73f9bc5810d9dcd0539b3838952e6163912ef03b2b4d",
+        "f871a0f6b13d955c6fedced811631479415a47462430c6a278c7b621d52d0387ad6f038080a0bb887e8125a44dcbc5865e803cf62721059284d8b4f2b8d65893b9bb90ed4bbc80a0ce18fff64748b3eec28dcd4197a533fac9241244690b658959e2c0cb628beeb18080808080808080808080",
+        "ea8820726576696f7573a0492afc4b335a2ec63ee03ca8f9e38cf05142eb865a30518a6a33d36e75b9d4ca"
       ]
     }
   }
@@ -964,18 +964,19 @@ curl -XPOST "$api/blocks?pretty=true"
 
 ```json
 {
-  "took": 58,
+  "took": 118,
   "status": 201,
   "data": {
-    "root": "5fa86dba9ca20cc18b2c94c4924c08f8b8daa29a027f61b6573a519f351f6dd3",
+    "root": "0f59e004bebe847a665bc7df3941b7168ee0f0bfa2b2ea77b383c58324979e6e",
     "index": 2,
-    "timestamp": 1577720814740,
+    "timestamp": 1581604292300,
     "count": 3,
     "previous": {
-      "root": "2aeafe3bd211dfc26469a1f8d62a266fe57051d540953bb0e5fa54048c9da80c",
+      "root": "11a6c4cca99fbb0f55dbbb9c53c217167e43dc91d28e0538e51d8e4d8d41bcd0",
       "proof": [
-        "f89180808080a06fc43665b968196831d069a2fc8f1a70500bb7e2f04e11c882a1a6d9c016d68580a05120ec23bff4ba5d48f1c6a60467774e063d9ef7c0f4b2b157fb55c2638ddb65a03a014716b477b426589f878c5b1c49e78bdf25739a5614a5ef0f1cb9140bcc14a06b8178802eaabf354cdf6dc804a685c01e60e9f910661c9c7681a0fc0e70c54c8080808080808080",
-        "ea8830726576696f7573a02aeafe3bd211dfc26469a1f8d62a266fe57051d540953bb0e5fa54048c9da80c"
+        "f87180808080a03a429eb76c9ced59100e36684d23b970cbb4ebffbb35938bcd944d2af3cf040a8080a0d6c27167f232aedc5b4e22176644637fb3a87dbf2cec4d91221a9efb3f54d187a0805b5e1f9512b182dc1753cc9160948927d46cd18a2e08d06de35b04be65ad9a8080808080808080",
+        "f851a0dc2c7aee8546bdd1440add2b409bfee565da419994ecfd554e90d9cba32570468080a0ec8f94e9af29ad98e0b01bb9c6519d8a75502d9d7bb576ba88c753240d7f87e180808080808080808080808080",
+        "ea8820726576696f7573a011a6c4cca99fbb0f55dbbb9c53c217167e43dc91d28e0538e51d8e4d8d41bcd0"
       ]
     }
   }
@@ -990,17 +991,19 @@ curl -XPOST "$api/blocks?pretty=true"
 
 ```json
 {
-  "took": 30,
+  "took": 57,
   "status": 201,
   "data": {
-    "root": "8d5efbdea49ec50f8e111974829bc7ace9a9bd5043b328289d7c25faf1452b02",
+    "root": "a51b7c0996c8162593dd81424ad57372ff1b8880e28e77ab5d11c9fa430cf2cc",
     "index": 3,
-    "timestamp": 1577720831680,
+    "timestamp": 1581604302793,
     "count": 0,
     "previous": {
-      "root": "5fa86dba9ca20cc18b2c94c4924c08f8b8daa29a027f61b6573a519f351f6dd3",
+      "root": "0f59e004bebe847a665bc7df3941b7168ee0f0bfa2b2ea77b383c58324979e6e",
       "proof": [
-        "eb892070726576696f7573a05fa86dba9ca20cc18b2c94c4924c08f8b8daa29a027f61b6573a519f351f6dd3"
+        "e217a01412dedc9a5241c780eb2d40e399481dbc8ecfb44b1623a082563e0e9ae83c02",
+        "f851a0fb902557bae622be5e393878a08e8ce69aa1736c9c868ddf8b0bcb634900b8d58080a06cd4228392d61441d7bf6cf544098c85ed5007bd02833ba92d9df2f59dfc749c80808080808080808080808080",
+        "ea8820726576696f7573a00f59e004bebe847a665bc7df3941b7168ee0f0bfa2b2ea77b383c58324979e6e"
       ]
     }
   }
@@ -1017,7 +1020,7 @@ curl -XPOST "$api/blocks?pretty=true&no-empty=true"
 
 ```json
 {
-  "took": 21,
+  "took": 24,
   "status": 200,
   "data": null
 }
@@ -1035,19 +1038,21 @@ curl -XGET "$api/blocks?pretty=true"
 
 ```json
 {
-  "took": 6,
+  "took": 12,
   "status": 200,
   "data": {
     "count": 0,
     "previous": {
-      "root": "8d5efbdea49ec50f8e111974829bc7ace9a9bd5043b328289d7c25faf1452b02",
+      "root": "a51b7c0996c8162593dd81424ad57372ff1b8880e28e77ab5d11c9fa430cf2cc",
       "index": 3,
-      "timestamp": 1577720831680,
+      "timestamp": 1581604302793,
       "count": 0,
       "previous": {
-        "root": "5fa86dba9ca20cc18b2c94c4924c08f8b8daa29a027f61b6573a519f351f6dd3",
+        "root": "0f59e004bebe847a665bc7df3941b7168ee0f0bfa2b2ea77b383c58324979e6e",
         "proof": [
-          "eb892070726576696f7573a05fa86dba9ca20cc18b2c94c4924c08f8b8daa29a027f61b6573a519f351f6dd3"
+          "e217a01412dedc9a5241c780eb2d40e399481dbc8ecfb44b1623a082563e0e9ae83c02",
+          "f851a0fb902557bae622be5e393878a08e8ce69aa1736c9c868ddf8b0bcb634900b8d58080a06cd4228392d61441d7bf6cf544098c85ed5007bd02833ba92d9df2f59dfc749c80808080808080808080808080",
+          "ea8820726576696f7573a00f59e004bebe847a665bc7df3941b7168ee0f0bfa2b2ea77b383c58324979e6e"
         ]
       }
     }
@@ -1063,19 +1068,19 @@ curl -XGET "$api/blocks/1?pretty=true"
 
 ```json
 {
-  "took": 4,
+  "took": 11,
   "status": 200,
   "data": {
-    "root": "2aeafe3bd211dfc26469a1f8d62a266fe57051d540953bb0e5fa54048c9da80c",
+    "root": "11a6c4cca99fbb0f55dbbb9c53c217167e43dc91d28e0538e51d8e4d8d41bcd0",
     "index": 1,
-    "timestamp": 1577720790807,
+    "timestamp": 1581604277882,
     "count": 1,
     "previous": {
-      "root": "67dd95107b4e561e764deb01ae297ed67e447065f0ec7560dbdeab555d83dc99",
+      "root": "492afc4b335a2ec63ee03ca8f9e38cf05142eb865a30518a6a33d36e75b9d4ca",
       "proof": [
-        "e217a0c29b52521f885b86548c021a737eca1fbceb25745526b45b389d4fd356fe989e",
-        "f851a0e11362386708bf7159efc6b1a13f69a2ec4824101191826ec2b7e67eff6670c680808080a08f7aad3775fadcc05056e5d52593e48f18ad895c1646167bf89aeb63bfd989508080808080808080808080",
-        "ea8820726576696f7573a067dd95107b4e561e764deb01ae297ed67e447065f0ec7560dbdeab555d83dc99"
+        "e217a0d807718f9cae760e829d73f9bc5810d9dcd0539b3838952e6163912ef03b2b4d",
+        "f871a0f6b13d955c6fedced811631479415a47462430c6a278c7b621d52d0387ad6f038080a0bb887e8125a44dcbc5865e803cf62721059284d8b4f2b8d65893b9bb90ed4bbc80a0ce18fff64748b3eec28dcd4197a533fac9241244690b658959e2c0cb628beeb18080808080808080808080",
+        "ea8820726576696f7573a0492afc4b335a2ec63ee03ca8f9e38cf05142eb865a30518a6a33d36e75b9d4ca"
       ]
     }
   }
@@ -1091,19 +1096,19 @@ curl -XGET "$api/blocks/$root?pretty=true"
 
 ```json
 {
-  "took": 3,
+  "took": 5,
   "status": 200,
   "data": {
-    "root": "2aeafe3bd211dfc26469a1f8d62a266fe57051d540953bb0e5fa54048c9da80c",
+    "root": "11a6c4cca99fbb0f55dbbb9c53c217167e43dc91d28e0538e51d8e4d8d41bcd0",
     "index": 1,
-    "timestamp": 1577720790807,
+    "timestamp": 1581604277882,
     "count": 1,
     "previous": {
-      "root": "67dd95107b4e561e764deb01ae297ed67e447065f0ec7560dbdeab555d83dc99",
+      "root": "492afc4b335a2ec63ee03ca8f9e38cf05142eb865a30518a6a33d36e75b9d4ca",
       "proof": [
-        "e217a0c29b52521f885b86548c021a737eca1fbceb25745526b45b389d4fd356fe989e",
-        "f851a0e11362386708bf7159efc6b1a13f69a2ec4824101191826ec2b7e67eff6670c680808080a08f7aad3775fadcc05056e5d52593e48f18ad895c1646167bf89aeb63bfd989508080808080808080808080",
-        "ea8820726576696f7573a067dd95107b4e561e764deb01ae297ed67e447065f0ec7560dbdeab555d83dc99"
+        "e217a0d807718f9cae760e829d73f9bc5810d9dcd0539b3838952e6163912ef03b2b4d",
+        "f871a0f6b13d955c6fedced811631479415a47462430c6a278c7b621d52d0387ad6f038080a0bb887e8125a44dcbc5865e803cf62721059284d8b4f2b8d65893b9bb90ed4bbc80a0ce18fff64748b3eec28dcd4197a533fac9241244690b658959e2c0cb628beeb18080808080808080808080",
+        "ea8820726576696f7573a0492afc4b335a2ec63ee03ca8f9e38cf05142eb865a30518a6a33d36e75b9d4ca"
       ]
     }
   }
@@ -1121,7 +1126,7 @@ docker run --rm -it --network host redis redis-cli
 
 # redis client command
 docker run --rm -i --network host redis redis-cli info
-docker run --rm -i --network host redis redis-cli eval "return #redis.call('keys', 'precedence.chain.*')" 0
+docker run --rm -i --network host redis redis-cli eval "return #redis.call('keys', 'precedence.*')" 0
 ```
 
 ## Ongoing developments

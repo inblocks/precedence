@@ -36,19 +36,24 @@ module.exports = (redis, urls) => {
           }
           delete blacklist[object.url]
           try {
-            const response = await request('POST', object.url, null, Buffer.from(JSON.stringify({
-              timestamp,
-              id: object.id,
-              type: object.type,
-              data: JSON.parse(object.data)
-            }), 'utf8'), undefined, 10000)
+            const response = await request({
+              method: 'POST',
+              url: object.url,
+              data: Buffer.from(JSON.stringify({
+                timestamp,
+                id: object.id,
+                type: object.type,
+                data: JSON.parse(object.data)
+              }), 'utf8'),
+              timeout: 10000
+            })
             if (response.status === 200) {
               console.log(`WEBHOOK INFO [OK] ${log}`)
               await redis.xdel(webhookStream, streamId)
               exponentialBackoff[object.url] = null
               continue
             } else {
-              console.log(`WEBHOOK WARNING [${response.status} ${response.data}] ${log}`)
+              console.log(`WEBHOOK WARNING [${response.status} ${JSON.stringify(response.data)}] ${log}`)
             }
           } catch (e) {
             console.log(`WEBHOOK WARNING [${e.response && e.response.data ? `${e.response.status} ${JSON.stringify(e.response.data)}` : e.message}] ${log}`)

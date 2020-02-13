@@ -19,8 +19,12 @@ module.exports.objectify = array => {
   return o
 }
 
-module.exports.getTime = (redis) => {
-  return redis.time().then(result => Number(`${result[0]}${`00${Math.round(result[1] / 1000)}`.slice(-3)}`))
+module.exports.timeToTimestamp = time => {
+  return Number(`${time[0]}${`00${Math.round(time[1] / 1000)}`.slice(-3)}`)
+}
+
+module.exports.getTime = redis => {
+  return redis.time().then(result => module.exports.timeToTimestamp(result))
 }
 
 module.exports.execOperations = async (redis, operations) => {

@@ -1,20 +1,18 @@
-const util = require('util')
-
 const LevelUp = require('levelup')
 const Trie = require('merkle-patricia-tree')
 
-const { random } = require('../../common/src/utils')
+const { random, sha256 } = require('../../common/src/utils')
 
-const { ConcurrentError } = require('./errors')
-const { getNextStreamId, objectify, execOperations } = require('./redis')
+const { ConflictError } = require('./errors')
+const { getTime, getNextStreamId, execOperations } = require('./redis')
 const RedisDown = require('./redisdown')
+const { getRecord } = require('./records')
 
-const recordStream = 'record.stream'
-const blockStream = 'block.stream'
-const blockPendingStream = 'block.pending.stream'
-const blockLedgerIdByIndexKeyFormat = 'block.index.%s'
-const blockLedgerIdByRootKeyFormat = 'block.root.%s'
-const blockMerkleFormat = 'block.merkle.%s.%s'
+const recordStream = 'records:s'
+const blocksStream = 'blocks:s'
+const blocksHashKey = 'blocks:h'
+const triesKey = 'tries:h'
+const tmpTriesSeedSet = 'tmp.tries.seed:s'
 
 const previousKey = 'previous'
 const seedKey = 'seed'
@@ -34,72 +32,26 @@ const parseBlockFromStream = (result) => {
   const block = result && JSON.parse(result[1][1])
   if (block) {
     block.timestamp = Number(block.timestamp)
+    block.streamId = result[0]
   }
   return block
 }
 
-const getBlockInfo = async (redis, streamId) => parseBlockFromStream((await redis.xrevrange(blockStream, streamId, '-', 'COUNT', 1))[0])
+const getBlockInfo = async (redis, streamId) => {
+  return parseBlockFromStream((await redis.xrevrange(blocksStream, streamId, '-', 'COUNT', 1))[0])
+}
 
 const getLastBlockInfo = async (redis) => {
   return getBlockInfo(redis, '+')
 }
 
-const getNextBlockInfo = async (redis, timestamp) => parseBlockFromStream((await redis.xrange(blockStream, timestamp, '+', 'COUNT', 1))[0])
+const getNextBlockInfo = async (redis, timestamp) => {
+  return parseBlockFromStream((await redis.xrange(blocksStream, timestamp, '+', 'COUNT', 1))[0])
+}
 
 const getLastTodoStreamId = async (redis) => {
   const result = (await redis.xrevrange(recordStream, '+', '-', 'COUNT', 1))[0]
   return result ? result[0] : null
-}
-
-const getNewBlock = async (redis) => {
-  const previousBlock = await getLastBlockInfo(redis)
-  let index = 0
-  let previous = null
-  let streamId = null
-  if (previousBlock) {
-    index = previousBlock.index + 1
-    previous = previousBlock.root
-    streamId = previousBlock.streamId
-  }
-  const location = random(32)
-  const blockPendingStreamId = await redis.xadd(blockPendingStream, '*', 'index', index, 'location', location)
-  return {
-    index,
-    streamId,
-    location,
-    blockPendingStreamId,
-    previous,
-    timestamp: Number(blockPendingStreamId.split('-')[0]),
-    trie: new Trie(LevelUp(RedisDown(redis, util.format(blockMerkleFormat, index, location)))),
-    count: 0
-  }
-}
-
-const cleanBlocks = (redis) => {
-  return new Promise((resolve, reject) => {
-    setTimeout(async function clean () {
-      try {
-        const results = await redis.xrange(blockPendingStream, '0', '+', 'COUNT', '1')
-        if (results.length === 0) {
-          return resolve()
-        }
-        const blockPendingStreamId = results[0][0]
-        const block = objectify(results[0][1])
-        const blockLedgerStreamId = await redis.get(util.format(blockLedgerIdByIndexKeyFormat, block.index))
-        if (blockLedgerStreamId === null) {
-          return resolve()
-        }
-        const persistedBlock = await getBlockInfo(redis, blockLedgerStreamId)
-        if (persistedBlock.location !== block.location) {
-          await RedisDown.delete(redis, util.format(blockMerkleFormat, block.index, block.location))
-        }
-        await redis.xdel(blockPendingStream, blockPendingStreamId)
-        setTimeout(clean, 0)
-      } catch (e) {
-        reject(e)
-      }
-    }, 0)
-  })
 }
 
 const getProof = async (trie, key) => {
@@ -120,25 +72,21 @@ const getProof = async (trie, key) => {
 const getBlock = async (redis, id = null, records = false) => {
   let block = null
   if (id != null) {
-    let blockLedgerStreamId
-    if (id.toString().match(/^[a-z0-9]{64}$/)) {
-      blockLedgerStreamId = await redis.get(util.format(blockLedgerIdByRootKeyFormat, id))
-    } else {
-      blockLedgerStreamId = await redis.get(util.format(blockLedgerIdByIndexKeyFormat, id))
-    }
-    if (!blockLedgerStreamId) {
+    const streamId = await redis.hget(blocksHashKey, id)
+    if (!streamId) {
       return null
     }
-    block = await getBlockInfo(redis, blockLedgerStreamId)
+    block = await getBlockInfo(redis, streamId)
     if (records) {
       const start = block.index ? (await getBlock(redis, block.index - 1)).timestamp : '-'
       const end = block.timestamp ? block.timestamp : '+'
-      block.records = (await redis.xrange(recordStream, start, end)).map(o => o[1][1])
+      block.records = (await redis.xrange(recordStream, start, end)).map(o => {
+        return o[1][1]
+      })
     }
   } else {
     const last = await getLastBlockInfo(redis)
-    const start = last ? last.timestamp : '-'
-    const res = (await redis.xrange(recordStream, start, '+')).map(o => o[1][1])
+    const res = (await redis.xrange(recordStream, last ? getNextStreamId(last.streamId) : '-', '+')).map(o => o[1][1])
     block = {
       count: res.length,
       previous: last ? blockResponse(last) : null,
@@ -148,101 +96,98 @@ const getBlock = async (redis, id = null, records = false) => {
   return blockResponse(block)
 }
 
+const putInTrie = (trie, key, value) => {
+  return new Promise((resolve, reject) => {
+    trie.put(key, value, e => {
+      try {
+        if (e) return reject(e)
+        resolve()
+      } catch (e) {
+        reject(e)
+      }
+    })
+  })
+}
+
+const getTrie = (redis, index, root, operation) => {
+  return new Trie(LevelUp(RedisDown(redis, triesKey, `${index}.`, operation)), root)
+}
+
 const createBlock = async (redis, empty, max) => {
-  await cleanBlocks(redis)
   const end = await getLastTodoStreamId(redis)
   if (end === null && !empty) {
     return null
   }
   redis = redis.duplicate()
   try {
-    await redis.watch(blockStream)
-    const block = await getNewBlock(redis)
-    end !== null && max !== 0 && await new Promise((resolve, reject) => {
-      setTimeout(async function run () {
-        try {
-          const countArgs = max >= 0 ? ['COUNT', Math.min(max - block.count, 1000)] : []
-          const results = await redis.xrange(recordStream, getNextStreamId(block.streamId), end, ...countArgs)
-          for (const result of results) {
-            const streamId = result[0]
-            const object = objectify(result[1])
-            await new Promise((resolve, reject) => {
-              block.trie.put(Buffer.from(object.key, 'hex'), Buffer.from(object.value, 'hex'), e => {
-                try {
-                  if (e) {
-                    return reject(e)
-                  }
-                  resolve()
-                } catch (e) {
-                  reject(e)
-                }
-              })
-            })
-            block.count++
-            block.streamId = streamId
+    const seed = random(32)
+    await redis.del(tmpTriesSeedSet)
+    let index = 0
+    let streamId = null
+    let previous = null
+    const lastBlock = await getLastBlockInfo(redis)
+    if (lastBlock) {
+      index = lastBlock.index + 1
+      streamId = lastBlock.streamId
+      previous = lastBlock.root
+    }
+    let count = 0
+    const trie = getTrie(redis, index, null, ['sadd', tmpTriesSeedSet, seed])
+    if (end !== null && max !== 0) {
+      await new Promise((resolve, reject) => {
+        setTimeout(async function run () {
+          try {
+            const countArgs = max >= 0 ? ['COUNT', Math.min(max - count, 1000)] : []
+            const results = await redis.xrange(recordStream, getNextStreamId(streamId), end, ...countArgs)
+            for (const result of results) {
+              streamId = result[0]
+              const record = await getRecord(redis, result[1][1])
+              await putInTrie(trie, Buffer.from(record.provable.id, 'hex'), Buffer.from(sha256(JSON.stringify(record.provable)), 'hex'))
+              count++
+            }
+            const endReached = (end !== '+') && (end <= streamId)
+            const maxReached = (max >= 0) && (max - count <= 0)
+            if (endReached || maxReached) {
+              resolve()
+            } else {
+              setTimeout(run, results.length > 0 ? 0 : 1000)
+            }
+          } catch (e) {
+            reject(e)
           }
-          const lastBlock = await getLastBlockInfo(redis)
-          if (lastBlock && lastBlock.index >= block.index) {
-            reject(new ConcurrentError())
-            return
-          }
-          const endReached = (end !== '+') && (end <= block.streamId)
-          const maxReached = (max >= 0) && (max - block.count <= 0)
-          if (endReached || maxReached) {
-            resolve()
-          } else {
-            setTimeout(run, results.length > 0 ? 0 : 1000)
-          }
-        } catch (e) {
-          reject(e)
-        }
-      }, 0)
-    })
-    if (block.count === 0 && !empty) {
+        }, 0)
+      })
+    }
+    if (count === 0 && !empty) {
       return null
     }
-    let streamId = block.streamId
-    let key = previousKey
-    let value = block.previous
-    if (block.count === 0) {
-      streamId = getNextStreamId(block.streamId)
+    await putInTrie(trie, previousKey, previous ? Buffer.from(previous, 'hex') : null)
+    await putInTrie(trie, seedKey, Buffer.from(random(32), 'hex'))
+    const root = trie.root.toString('hex')
+    if (count === 0) {
+      streamId = getNextStreamId(streamId)
     }
-    if (block.index === 0) {
-      key = seedKey
-      value = random(32)
+    const block = {
+      index,
+      timestamp: await getTime(redis),
+      count,
+      root,
+      previous: previous ? {
+        root: previous,
+        proof: await getProof(trie, previousKey)
+      } : null
     }
-    await new Promise((resolve, reject) => {
-      block.trie.put(key, Buffer.from(value, 'hex'), e => {
-        try {
-          if (e) {
-            return reject(e)
-          }
-          resolve()
-        } catch (e) {
-          reject(e)
-        }
-      })
-    })
-    const root = block.trie.root.toString('hex')
-    const result = {
-      streamId,
-      index: block.index,
-      location: block.location,
-      timestamp: block.timestamp,
-      count: block.count,
-      root: root,
-      previous: block.index === 0 ? null : {
-        root: block.previous,
-        proof: await getProof(block.trie, previousKey)
-      }
+    await redis.watch(tmpTriesSeedSet)
+    const seeds = await redis.smembers(tmpTriesSeedSet)
+    if (seeds.length !== 1 || seeds[0] !== seed) {
+      throw new ConflictError()
     }
     await execOperations(redis, [
-      ['xadd', blockStream, streamId, 'block', JSON.stringify(result)],
-      ['set', util.format(blockLedgerIdByRootKeyFormat, root), streamId],
-      ['set', util.format(blockLedgerIdByIndexKeyFormat, block.index), streamId],
-      ['xdel', blockPendingStream, block.blockPendingStreamId]
+      ['del', tmpTriesSeedSet],
+      ['xadd', blocksStream, streamId, '', JSON.stringify(block)],
+      ['hmset', blocksHashKey, index, streamId, root, streamId]
     ])
-    return blockResponse(result)
+    return blockResponse(block)
   } finally {
     redis.disconnect()
   }
@@ -256,7 +201,7 @@ module.exports = {
     }
     return {
       root: block.root,
-      proof: await getProof(new Trie(LevelUp(RedisDown(redis, util.format(blockMerkleFormat, block.index, block.location))), Buffer.from(block.root, 'hex')), key)
+      proof: await getProof(getTrie(redis, block.index, Buffer.from(block.root, 'hex')), key)
     }
   },
   getBlock,

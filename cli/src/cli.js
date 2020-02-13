@@ -8,9 +8,9 @@ const defaults = {
   api: 'http://localhost:9000'
 }
 
-const out = (value, raw) => process.stdout.write(raw ? value : `${JSON.stringify(value, null, 2)}\n`)
+const out = (value, stringify) => process.stdout.write(stringify ? `${JSON.stringify(value, null, 2)}\n` : value)
 
-const exec = async (method, url, params, data, headers) => {
+const exec = async (method, url, queryParams, data, headers, responseType) => {
   if (Object.keys(process.env).some(e => e.startsWith('PRECEDENCE_OAUTH2_'))) {
     await require('../../common/src/OAuth2').auth({
       grant_type: 'client_credentials',
@@ -27,13 +27,14 @@ const exec = async (method, url, params, data, headers) => {
   }
   let response
   try {
-    response = (await request(
+    response = (await request({
       method,
-      `${process.env.PRECEDENCE_API || defaults.api}${url}`,
-      params,
+      url: `${process.env.PRECEDENCE_API || defaults.api}${url}`,
+      queryParams,
       data,
-      headers
-    ))
+      headers,
+      responseType
+    }))
   } catch (e) {
     if (e.response) {
       response = e.response
@@ -42,7 +43,7 @@ const exec = async (method, url, params, data, headers) => {
       return 1
     }
   }
-  out(response.data, !response.headers['content-type'].startsWith('application/json'))
+  out(response.data, response.headers['content-type'].startsWith('application/json'))
   return 0
 }
 
@@ -90,14 +91,14 @@ cli.run('precedence', {
                 id,
                 payload: parseTokenPayload(await getToken(id))
               }
-            })))
+            })), true)
           }
         },
         'logout': {
           _description: 'Remove an identity.',
           _parameters: { ID: true },
           _exec: async (command, definition, args) => {
-            out(await logout(args[0]))
+            out(await logout(args[0]), true)
           }
         }
       }
@@ -113,14 +114,14 @@ cli.run('precedence', {
             out({
               PRIVATE_KEY: key,
               PUBLIC_ADDRESS: require('../../common/src/signature').privateToAddress(key)
-            })
+            }, true)
           }
         },
         'private-key-to-address': {
           _description: 'Extract address from ECDSA private key.',
           _parameters: { KEY: true },
           _exec: (command, definitions, args) => {
-            out(require('../../common/src/signature').privateToAddress(args[0]), true)
+            out(require('../../common/src/signature').privateToAddress(args[0]))
           }
         },
         'sign': {
@@ -164,7 +165,7 @@ cli.run('precedence', {
             } else {
               data = require('../../common/src/utils').sha256(data)
             }
-            out(require('../../common/src/signature').sign(Buffer.from(data, 'hex'), process.env.PRECEDENCE_PRIVATE_KEY), true)
+            out(require('../../common/src/signature').sign(Buffer.from(data, 'hex'), process.env.PRECEDENCE_PRIVATE_KEY))
           }
         }
       }
@@ -296,7 +297,7 @@ You can explicitly set the previous record(s) of the record you are creating (by
               description: `Get the original data.`
             }
           ],
-          _exec: (command, definitions, args, options) => exec('GET', `/records/${args[0]}`, options)
+          _exec: (command, definitions, args, options) => exec('GET', `/records/${args[0]}`, options, undefined, undefined, options.data ? 'arraybuffer' : null)
         },
         delete: {
           _description: 'Delete the data of a record.',

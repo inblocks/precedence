@@ -27,24 +27,24 @@ const axios = (() => {
   })
 })()
 
-module.exports = async (method, url, queryParams = null, data = Buffer.from([]), headers = {}, timeout) => {
-  if (!Buffer.isBuffer(data)) {
+module.exports = async config => {
+  if (config.data != null && !Buffer.isBuffer(config.data)) {
     throw new Error('data must be a buffer')
   }
-  if (process.env.PRECEDENCE_PRIVATE_KEY) {
-    headers['precedence-address'] = privateToAddress(process.env.PRECEDENCE_PRIVATE_KEY)
-    headers['precedence-signature'] = sign(Buffer.from(sha256(data), 'hex'), process.env.PRECEDENCE_PRIVATE_KEY)
+  config.headers = config.headers || {}
+  config.maxContentLength = config.maxContentLength || Infinity
+  config.timeout = config.timeout || 0
+  config.responseType = config.responseType || 'json'
+  if (config.queryParams) {
+    config.url = `${config.url}${paramsSerializer(config.queryParams)}`
+    delete config.queryParams
   }
-  const config = {
-    method,
-    url: `${url}${paramsSerializer(queryParams)}`,
-    headers,
-    timeout: timeout || 0,
-    data,
-    maxContentLength: Infinity
+  if (process.env.PRECEDENCE_PRIVATE_KEY) {
+    config.headers['precedence-address'] = privateToAddress(process.env.PRECEDENCE_PRIVATE_KEY)
+    config.headers['precedence-signature'] = sign(Buffer.from(sha256(config.data), 'hex'), process.env.PRECEDENCE_PRIVATE_KEY)
   }
   if (debug.enabled) {
-    debug(`${method} ${config.url} ${JSON.stringify(headers)} ${data ? data.length : null} ${timeout}`)
+    debug(`${config.method} ${config.url} ${JSON.stringify(config.headers)} ${config.data ? config.data.length : null} ${timeout}`)
   }
   return axios.request(config).then(response => {
     return response

@@ -180,11 +180,16 @@ require('../../common/src/cli').run('precedence-api', {
 
     app.use(require('morgan')('ACCESS - :date[iso] - :remote-addr ":method :url" :status :res[content-length] ":user-agent"'))
 
-    app.get('/records/:id', api(async req => {
+    app.get('/records/:id', api(async (req, res) => {
       const data = req.query.data === 'true'
       const result = await precedence.getRecord(req.params.id, data)
       if (!result) throw data ? new RecordDataNotFoundError(req.params.id) : new RecordNotFoundError(req.params.id)
-      return result
+      if (data) {
+        res.set('content-type', 'application/octet-stream')
+        res.send(result)
+      } else {
+        return result
+      }
     }))
     app.post('/records', require('body-parser').raw({
       type: () => true,
