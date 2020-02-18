@@ -1,6 +1,6 @@
 const defaults = require('./defaults')
 const { createBlock, getBlock, getProof } = require('./blocks')
-const { getRecord, getRecords, getLastRecordId, createRecords, deleteRecord, deleteChain } = require('./records')
+const { getRecord, getRecords, getLastRecordIds, createRecords, deleteRecord, deleteChain } = require('./records')
 
 module.exports = (redis, options = defaults) => {
 
@@ -20,13 +20,13 @@ module.exports = (redis, options = defaults) => {
   return {
     getRecord: _getRecord,
     getLastRecord: async chain => {
-      const id = await getLastRecordId(redis, chain)
+      const id = (await getLastRecordIds(redis, chain))[0]
       return id ? _getRecord(id) : null
     },
-    getLastRecordId: chain => getLastRecordId(redis, chain),
+    getLastRecordIds: (...chains) => getLastRecordIds(redis, ...chains),
     createRecords: (_records, preExec = null) => createRecords(redis, _records, preExec),
-    deleteRecord: id => deleteRecord(redis, id),
-    deleteChain: (id, data = false) => deleteChain(redis, id, data),
+    deleteRecord: (id, preExec) => deleteRecord(redis, id, preExec),
+    deleteChain: (id, preExec) => deleteChain(redis, id, preExec),
     getBlock: async (id = null, records = false) => {
       const block = await getBlock(redis, id, records)
       if (block && records && block.records.length > 0) {
@@ -34,8 +34,8 @@ module.exports = (redis, options = defaults) => {
       }
       return block
     },
-    createBlock: async (empty = defaults.block.empty, max = defaults.block.max) => {
-      const block = await createBlock(redis, empty, max)
+    createBlock: async (empty = defaults.block.empty, max = defaults.block.max, preExec) => {
+      const block = await createBlock(redis, empty, max, preExec)
       if (webhooks) {
         await webhooks.add('block', block)
       }

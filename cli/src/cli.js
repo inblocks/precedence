@@ -2,15 +2,15 @@
 
 const cli = require('../../common/src/cli')
 const { getToken, list, logout, parseTokenPayload } = require('../../common/src/OAuth2')
-const request = require('../../common/src/request')
+const request = require('../../common/src/request')(require('../package.json'))
 
 const defaults = {
   api: 'http://localhost:9000'
 }
 
-const out = (value, stringify) => process.stdout.write(stringify ? `${JSON.stringify(value, null, 2)}\n` : value)
+const out = (value, stringify) => process.stdout.write(stringify ? `${JSON.stringify(JSON.parse(value), null, 2)}\n` : value)
 
-const exec = async (method, url, queryParams, data, headers, responseType) => {
+const exec = async (method, url, queryParams, data = Buffer.alloc(0), headers) => {
   if (Object.keys(process.env).some(e => e.startsWith('PRECEDENCE_OAUTH2_'))) {
     await require('../../common/src/OAuth2').auth({
       grant_type: 'client_credentials',
@@ -33,7 +33,7 @@ const exec = async (method, url, queryParams, data, headers, responseType) => {
       queryParams,
       data,
       headers,
-      responseType
+      responseType: 'arraybuffer'
     }))
   } catch (e) {
     if (e.response) {
@@ -208,16 +208,9 @@ If you do not provide any argument, you will get the pending block.`,
           _exec: (command, definitions, args) => exec('GET', `/chains/${args[0]}`)
         },
         delete: {
-          _description: 'Delete the chain and optionally recursively the data of all the records that it refers to.',
+          _description: 'Delete the chain.',
           _parameters: { NAME: true },
-          _options: [
-            {
-              name: 'data',
-              type: Boolean,
-              description: 'Delete recursively the data of all the records referred by the chain.'
-            }
-          ],
-          _exec: (command, definitions, args, options) => exec('DELETE', `/chains/${args[0]}`, options)
+          _exec: (command, definitions, args) => exec('DELETE', `/chains/${args[0]}`)
         }
       }
     },
@@ -297,7 +290,7 @@ You can explicitly set the previous record(s) of the record you are creating (by
               description: `Get the original data.`
             }
           ],
-          _exec: (command, definitions, args, options) => exec('GET', `/records/${args[0]}`, options, undefined, undefined, options.data ? 'arraybuffer' : null)
+          _exec: (command, definitions, args, options) => exec('GET', `/records/${args[0]}`, options)
         },
         delete: {
           _description: 'Delete the data of a record.',

@@ -12,7 +12,7 @@ const { timeToTimestamp, execOperations } = require('./redis')
 const { recover } = require('../../common/src/signature')
 
 const chainsHashKey = 'chains:h'
-const recordsStream = 'records:s'
+const recordsStream = 'records:x'
 const recordsHashKey = 'records:h'
 const recordsDataHashKey = 'records.data:h'
 const tmpChainKeyFormat = 'tmp.chain.%s'
@@ -35,67 +35,36 @@ const getRecords = async (redis, ...id) => {
   return results.map(r => JSON.parse(r))
 }
 
-const getLastRecordId = (redis, chain) => redis.hget(chainsHashKey, chain)
+const getLastRecordIds = (redis, ...chains) => redis.hmget(chainsHashKey, ...chains)
 
 const createRecords = async (redis, records, preExec) => {
+  let tmpKeys
   redis = redis.duplicate()
   try {
-    const id = random(32)
-    const ids = []
     const local = {
       chain: {},
       record: {}
     }
+    const ids = []
     const watched = []
-    records.forEach(record => {
+    const previous = {}
+    const id = random(32)
+    for (const record of records) {
       const id = record.id ? sha256(record.id) : random(32)
       if (local.record[id]) {
         throw new ConflictError()
       }
-      ids.push(id)
-      watched.push(format(tmpRecordKeyFormat, id))
-      if (record.chains) {
-        watched.push(...record.chains.map(chain => format(tmpChainKeyFormat, chain)))
-      }
-    }, {})
-    const timestamp = await (async () => {
-      const [time, exists] = await execOperations(redis, [
-        ['time'],
-        ['hexists', recordsHashKey, ...ids],
-        ['mset', watched.reduce((r, key) => {
-          r.push(key, id)
-          return r
-        }, [])],
-        ['watch', recordsHashKey, ...watched]
-      ])
-      if (exists > 0) {
-        for (const id of ids) {
-          if (await redis.hexists(recordsHashKey, id)) throw new RecordAlreadyExistsError(id)
-        }
-      }
-      return timeToTimestamp(time)
-    })()
-    if ((await redis.mget(...watched)).some(value => value !== id)) {
-      throw new ConflictError()
-    }
-    const operations = [['del'].concat(watched)]
-    const results = []
-    for (let i = 0; i < records.length; i++) {
-      const id = ids[i]
-      if (!records[i].hash && !records[i].data) {
+      local.record[id] = true
+      if (!record.hash && !record.data) {
         throw new Error('data and or hash must be provided')
       }
-      const record = {
-        provable: null,
-        timestamp,
-        seed: random(32),
-        hash: records[i].data ? sha256(records[i].data) : records[i].hash,
-        address: records[i].address,
-        signature: records[i].signature,
-        chains: {}
-      }
-      if (records[i].hash && (records[i].hash !== record.hash)) {
-        throw new HashMismatchedDataError(records[i].hash, record.hash)
+      if (!record.hash) {
+        record.hash = sha256(record.data)
+      } else if (record.data) {
+        const hash = sha256(record.data)
+        if (record.hash !== hash) {
+          throw new HashMismatchedDataError(record.hash, hash)
+        }
       }
       {
         let ok = false
@@ -108,12 +77,100 @@ const createRecords = async (redis, records, preExec) => {
           throw new InvalidSignatureError(record.signature, record.address, record.hash)
         }
       }
+      ids.push(id)
+      watched.push(format(tmpRecordKeyFormat, id))
+      if (record.chains) {
+        watched.push(...record.chains.map(chain => format(tmpChainKeyFormat, chain)))
+        for (const chain of record.chains) {
+          local.chain[chain] = true
+        }
+      }
+      if (record.previous) {
+        for (const id of record.previous) {
+          previous[id] = null
+        }
+      }
+    }
+    const timestamp = await (async () => {
+      const operations = [
+        ['time'],
+        ['mset', watched.reduce((r, key) => {
+          r.push(key, id)
+          return r
+        }, [])]
+      ]
+      let index = operations.length - 1
+      const chains = Object.keys(local.chain)
+      if (chains.length > 0) {
+        operations.push(['hmget', chainsHashKey, ...chains])
+      }
+      for (const id of ids) {
+        operations.push(['hexists', recordsHashKey, id])
+      }
+      const previousIds = Object.keys(previous)
+      for (const id of previousIds) {
+        operations.push(['hexists', recordsHashKey, id])
+      }
+      const results = await execOperations(redis, operations)
+      tmpKeys = watched
+      const time = results[0]
+      if (chains.length > 0) {
+        const chainIds = results[++index]
+        for (let i = 0; i < chains.length; i++) {
+          local.chain[chains[i]] = chainIds[i]
+        }
+      }
+      for (const id of ids) {
+        if (results[++index] === 1) {
+          throw new RecordAlreadyExistsError(id)
+        }
+      }
+      local.record = {}
+      for (const id of previousIds) {
+        if (results[++index] === 1) {
+          local.record[id] = true
+        } else {
+          throw new RecordNotFoundError(id)
+        }
+      }
+      for (const record of records) {
+        if (record.previous) {
+          for (const id of record.previous) {
+            if (local.record[id]) {
+              local.record[record.id] = true
+            } else {
+              throw new RecordNotFoundError(id)
+            }
+          }
+        }
+      }
+      return timeToTimestamp(time)
+    })()
+    await redis.watch(...watched)
+    if ((await redis.mget(...watched)).some(value => value !== id)) {
+      throw new ConflictError()
+    }
+    const operations = [['del'].concat(watched)]
+    const result = []
+    for (let i = 0; i < records.length; i++) {
+      const id = ids[i]
+      const record = {
+        provable: null,
+        timestamp,
+        seed: random(32),
+        hash: records[i].hash,
+        address: records[i].address,
+        signature: records[i].signature,
+        chains: {}
+      }
       record.provable = {
         id,
         seed: obfuscate(record.seed, record.seed),
         hash: obfuscate(record.seed, record.hash),
         address: obfuscate(record.seed, record.address),
-        signature: obfuscate(record.seed, record.signature)
+        signature: obfuscate(record.seed, record.signature),
+        chains: {},
+        previous: {}
       }
       if (records[i].store === true) {
         operations.push(['hset', recordsDataHashKey, id, records[i].data])
@@ -121,108 +178,90 @@ const createRecords = async (redis, records, preExec) => {
           bytes: records[i].data.length
         }
       }
-      const previous = {}
       if (records[i].chains) {
         for (const chain of records[i].chains) {
-          const last = local.chain[chain] ? local.chain[chain].id : await getLastRecordId(redis, chain)
+          const last = local.chain[chain]
           local.chain[chain] = id
           record.chains[chain] = last
           if (last) {
-            previous[last] = true
+            record.provable.previous[last] = true
           }
         }
+        record.chains = sortObject(record.chains)
+        Object.entries(record.chains).reduce((r, [k, v]) => {
+          r[obfuscate(record.seed, k)] = v
+          return r
+        }, record.provable.chains)
       }
-      record.chains = sortObject(record.chains)
-      record.provable.chains = Object.entries(record.chains).reduce((r, [k, v]) => {
-        r[obfuscate(record.seed, k)] = v
-        return r
-      }, {})
       if (records[i].previous) {
         for (const id of records[i].previous) {
-          if (!local.record[id] && (await getRecord(redis, id)) === null) {
-            throw new RecordNotFoundError(id)
-          }
-          local.record[id] = true
-          previous[id] = true
+          record.provable.previous[id] = true
         }
       }
-      record.provable.previous = Object.keys(previous).sort()
+      record.provable.previous = Object.keys(record.provable.previous).sort()
       operations.push(
         ['xadd', recordsStream, '*', '', id],
         getSetRecordOperation(id, record)
       )
-      local.record[id] = true
-      results.push(record)
+      result.push(record)
     }
     Object.entries(local.chain).forEach(([chain, id]) => {
       operations.push(['hset', chainsHashKey, chain, id])
     })
     if (preExec) {
-      await preExec(redis, operations)
+      await preExec(redis, operations, result)
     }
     await execOperations(redis, operations)
-    return results
+    tmpKeys = null
+    return result
   } finally {
+    if (tmpKeys) {
+      await redis.del(...tmpKeys)
+    }
     redis.disconnect()
   }
 }
 
-const deleteRecord = async (redis, id) => {
+const deleteRecord = async (redis, id, preExec) => {
   const record = await getRecord(redis, id)
   if (!record || !record.data) {
     return null
   }
-  const bytes = record.data.bytes
+  const result = {
+    bytes: record.data.bytes
+  }
   delete record.data
-  await execOperations(redis, [
+  const operations = [
     getSetRecordOperation(id, record),
     ['hdel', recordsDataHashKey, id]
-  ])
-  return {
-    bytes
+  ]
+  if (preExec) {
+    await preExec(redis, operations, result)
   }
+  await execOperations(redis, operations)
+  return result
 }
 
-const deleteChain = async (redis, chain, data = false) => {
-  const id = await getLastRecordId(redis, chain)
+const deleteChain = async (redis, chain, preExec) => {
+  const id = (await getLastRecordIds(redis, chain))[0]
   if (!id) {
     return null
   }
-  const results = {
-    records: 0,
-    data: data ? {
-      records: 0,
-      bytes: 0
-    } : undefined
+  const result = {
+    id
   }
-  const operations = []
-  const todo = [id]
-  while (todo.length > 0) {
-    for (const id of todo.splice(0, todo.length)) {
-      const record = await getRecord(redis, id)
-      results.records++
-      if (data && record.data && record.data.bytes >= 0) {
-        results.data.records++
-        results.data.bytes += record.data.bytes
-        delete record.data
-        operations.push(['del', recordsDataHashKey, id])
-      }
-      if (record.chains[chain]) {
-        todo.push(record.chains[chain])
-      }
-      delete record.chains[chain]
-      operations.push(getSetRecordOperation(id, record))
-    }
+  const operations = [['hdel', chainsHashKey, chain]]
+  if (preExec) {
+    await preExec(redis, operations, result)
   }
-  operations.push(['hdel', chainsHashKey, chain])
   await execOperations(redis, operations)
-  return results
+  return result
 }
 
 module.exports = {
   getRecord,
   getRecords,
-  getLastRecordId,
+  getLastRecordIds,
   createRecords,
   deleteRecord,
   deleteChain

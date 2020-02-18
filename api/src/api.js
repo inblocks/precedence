@@ -237,7 +237,7 @@ require('../../common/src/cli').run('precedence-api', {
       return result
     }))
     app.delete('/chains/:chain', api(async req => {
-      const result = await precedence.deleteChain(req.params.chain, req.query.data === 'true')
+      const result = await precedence.deleteChain(req.params.chain)
       if (!result) {
         throw new ChainNotFoundError(req.params.chain)
       }

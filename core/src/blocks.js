@@ -8,8 +8,8 @@ const { getTime, getNextStreamId, execOperations } = require('./redis')
 const RedisDown = require('./redisdown')
 const { getRecord } = require('./records')
 
-const recordStream = 'records:s'
-const blocksStream = 'blocks:s'
+const recordStream = 'records:x'
+const blocksStream = 'blocks:x'
 const blocksHashKey = 'blocks:h'
 const triesKey = 'tries:h'
 const tmpTriesSeedSet = 'tmp.tries.seed:s'
@@ -113,7 +113,7 @@ const getTrie = (redis, index, root, operation) => {
   return new Trie(LevelUp(RedisDown(redis, triesKey, `${index}.`, operation)), root)
 }
 
-const createBlock = async (redis, empty, max) => {
+const createBlock = async (redis, empty, max, preExec) => {
   const end = await getLastTodoStreamId(redis)
   if (end === null && !empty) {
     return null
@@ -182,12 +182,17 @@ const createBlock = async (redis, empty, max) => {
     if (seeds.length !== 1 || seeds[0] !== seed) {
       throw new ConflictError()
     }
-    await execOperations(redis, [
+    const result = blockResponse(block)
+    const operations = [
       ['del', tmpTriesSeedSet],
       ['xadd', blocksStream, streamId, '', JSON.stringify(block)],
       ['hmset', blocksHashKey, index, streamId, root, streamId]
-    ])
-    return blockResponse(block)
+    ]
+    if (preExec) {
+      await preExec(redis, operations, result)
+    }
+    await execOperations(redis, operations)
+    return result
   } finally {
     redis.disconnect()
   }

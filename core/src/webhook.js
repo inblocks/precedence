@@ -1,7 +1,7 @@
-const request = require('../../common/src/request')
+const request = require('../../common/src/request')(require('../package.json'))
+const { random } = require('../../common/src/utils')
 
 const { objectify } = require('./redis')
-const { random } = require('../../common/src/utils')
 
 const count = 10
 const webhookStream = 'webhook.stream'
