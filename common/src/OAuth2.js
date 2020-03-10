@@ -46,7 +46,7 @@ class OAuth2 {
   }
 
   static async logout (id) {
-    if (id === 'ALL') {
+    if (id == null) {
       return (await OAuth2.list()).map(id => {
         OAuth2.logout(id)
         return id

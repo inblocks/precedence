@@ -8,7 +8,7 @@ const defaults = {
   api: 'http://localhost:9000'
 }
 
-const out = (value, stringify) => process.stdout.write(stringify ? `${JSON.stringify(JSON.parse(value), null, 2)}\n` : value)
+const out = (value, stringify) => process.stdout.write(stringify ? `${JSON.stringify(value, null, 2)}\n` : value)
 
 const exec = async (method, url, queryParams, data = Buffer.alloc(0), headers) => {
   if (Object.keys(process.env).some(e => e.startsWith('PRECEDENCE_OAUTH2_'))) {
@@ -43,7 +43,8 @@ const exec = async (method, url, queryParams, data = Buffer.alloc(0), headers) =
       return 1
     }
   }
-  out(response.data, response.headers['content-type'].startsWith('application/json'))
+  const isJson = response.headers['content-type'].startsWith('application/json')
+  out(isJson ? JSON.parse(response.data) : response.data, isJson)
   return 0
 }
 
@@ -95,10 +96,10 @@ cli.run('precedence', {
           }
         },
         'logout': {
-          _description: 'Remove an identity.',
+          _description: 'Remove an identity ("ALL" to remove all identities)',
           _parameters: { ID: true },
           _exec: async (command, definition, args) => {
-            out(await logout(args[0]), true)
+            out(await logout(args[0] === 'ALL' ? null : args[0]), true)
           }
         }
       }
