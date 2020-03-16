@@ -71,7 +71,6 @@ class OAuth2 {
   static parseTokenPayload (token) {
     return JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString('utf8'))
   }
-
 }
 
 module.exports = OAuth2

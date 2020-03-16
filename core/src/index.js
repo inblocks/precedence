@@ -3,7 +3,6 @@ const { createBlock, getBlock, getProof } = require('./blocks')
 const { getRecord, getRecords, getLastRecordIds, createRecords, deleteRecord, deleteChain } = require('./records')
 
 module.exports = (redis, options = defaults) => {
-
   const webhooks = options.webhooks && options.webhooks.length > 0 && require('./webhook')(redis, options.webhooks)
 
   const _getRecord = async (id, data = false) => {

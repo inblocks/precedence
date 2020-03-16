@@ -84,7 +84,7 @@ cli.run('precedence', {
     auth: {
       _parameters: { COMMAND: false },
       _commands: {
-        'list': {
+        list: {
           _description: 'List identities.',
           _exec: async () => {
             out(await Promise.all((await list()).map(async id => {
@@ -95,7 +95,7 @@ cli.run('precedence', {
             })), true)
           }
         },
-        'logout': {
+        logout: {
           _description: 'Remove an identity ("ALL" to remove all identities)',
           _parameters: { ID: true },
           _exec: async (command, definition, args) => {
@@ -125,19 +125,19 @@ cli.run('precedence', {
             out(require('../../common/src/signature').privateToAddress(args[0]))
           }
         },
-        'sign': {
+        sign: {
           _description: 'Sign the SHA-256 of DATA (utf8 string).',
           _parameters: { DATA: true },
           _options: [
             {
               name: 'file',
               type: Boolean,
-              description: `Use the data contained in the file DATA.`
+              description: 'Use the data contained in the file DATA.'
             },
             {
               name: 'hex',
               type: Boolean,
-              description: `Sign directly DATA (hexadecimal string).`
+              description: 'Sign directly DATA (hexadecimal string).'
             }
           ],
           _exec: async (command, definitions, args, options) => {
@@ -161,7 +161,7 @@ cli.run('precedence', {
               })
             } else if (options.hex) {
               if (!/^[a-fA-F0-9]{64}$/.test(data)) {
-                return cli.errorUsage(command, definitions, 'DATA must match ^[a-fA-F0-9]\\\{64\\\}$')
+                return cli.errorUsage(command, definitions, 'DATA must match ^[a-fA-F0-9]\\{64\\}$')
               }
             } else {
               data = require('../../common/src/utils').sha256(data)
@@ -288,7 +288,7 @@ You can explicitly set the previous record(s) of the record you are creating (by
             {
               name: 'data',
               type: Boolean,
-              description: `Get the original data.`
+              description: 'Get the original data.'
             }
           ],
           _exec: (command, definitions, args, options) => exec('GET', `/records/${args[0]}`, options)

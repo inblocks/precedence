@@ -41,7 +41,7 @@ module.exports = jsonPackage => {
       config.headers['precedence-signature'] = sign(Buffer.from(sha256(config.data), 'hex'), process.env.PRECEDENCE_PRIVATE_KEY)
     }
     if (debug.enabled) {
-      debug(`${config.method} ${config.url} ${JSON.stringify(config.headers)} ${config.data ? config.data.length : null} ${timeout}`)
+      debug(`${config.method} ${config.url} ${JSON.stringify(config.headers)} ${config.data ? config.data.length : null} ${config.timeout}`)
     }
     return axios.request(config)
   }
