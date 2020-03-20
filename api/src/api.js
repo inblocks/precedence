@@ -195,22 +195,23 @@ require('../../common/src/cli').run('precedence-api', {
       type: () => true,
       limit: options.limit || defaults.limit,
       verify: (req, res, buf) => {
-        const type = req.headers['content-type'] && req.headers['content-type'].toLowerCase()
-        if (!type || type !== 'application/octet-stream') {
-          throw new UnsupportedMediaTypeError()
+        if (buf.length > 0) {
+          const type = req.headers['content-type'] && req.headers['content-type'].toLowerCase()
+          if (!type || type !== 'application/octet-stream') {
+            throw new UnsupportedMediaTypeError()
+          }
         }
-        req.body = buf
+        req.data = buf
       }
     }), api(async (req, res) => {
-      req.body = Buffer.isBuffer(req.body) ? req.body : undefined // https://github.com/expressjs/body-parser/issues/89
-      const data = !req.query.hash && !req.body ? Buffer.from([]) : req.body
+      const data = req.data || Buffer.from([])
       const [address, signature] = req.headers['precedence-address'] && req.headers['precedence-signature']
         ? [req.headers['precedence-address'], req.headers['precedence-signature']]
         : [nodeAddress, sign(Buffer.from(req.query.hash || sha256(data), 'hex'), process.env.PRECEDENCE_PRIVATE_KEY)]
       return precedence.createRecords([{
         id: req.query.id,
         hash: req.query.hash,
-        data,
+        data: req.query.hash && data.length === 0 ? undefined : data,
         chains: Array.isArray(req.query.chain) ? req.query.chain : (req.query.chain && [req.query.chain]),
         previous: Array.isArray(req.query.previous) ? req.query.previous : (req.query.previous && [req.query.previous]),
         store: req.query.store === 'true',

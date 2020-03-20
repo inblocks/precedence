@@ -179,11 +179,11 @@ cli.run('precedence', {
           _options: [{
             name: 'no-empty',
             type: Boolean,
-            description: 'To prevent the creation of empty blocks'
+            description: 'To prevent the creation of an empty block'
           }, {
             name: 'max',
             type: Number,
-            description: 'Set the maximum number of records of this block'
+            description: 'Set the maximum number of records'
           }],
           _exec: (command, definitions, args, options) => exec('POST', '/blocks', options)
         },
