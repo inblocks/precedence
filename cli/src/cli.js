@@ -47,7 +47,8 @@ const exec = async (method, url, queryParams, data = Buffer.alloc(0), headers) =
     if (e.response) {
       response = e.response
     } else {
-      throw e
+      console.error(e.message)
+      return 1
     }
   }
   const isJson = response.headers['content-type'].startsWith('application/json')
