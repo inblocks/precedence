@@ -8,7 +8,15 @@ const defaults = {
   api: 'http://localhost:9000'
 }
 
-const out = (value, stringify) => process.stdout.write(stringify ? `${JSON.stringify(value, null, 2)}\n` : value)
+const out = (value, stringify) => new Promise((resolve, reject) => {
+  process.stdout.write(stringify ? `${JSON.stringify(value, null, 2)}\n` : value, error => {
+    if (error) {
+      reject(error)
+    } else {
+      resolve(0)
+    }
+  })
+})
 
 const exec = async (method, url, queryParams, data = Buffer.alloc(0), headers) => {
   if (Object.keys(process.env).some(e => e.startsWith('PRECEDENCE_OAUTH2_'))) {
@@ -39,13 +47,11 @@ const exec = async (method, url, queryParams, data = Buffer.alloc(0), headers) =
     if (e.response) {
       response = e.response
     } else {
-      console.error(`ERROR: ${e.message}`)
-      return 1
+      throw e
     }
   }
   const isJson = response.headers['content-type'].startsWith('application/json')
-  out(isJson ? JSON.parse(response.data) : response.data, isJson)
-  return 0
+  return out(isJson ? JSON.parse(response.data) : response.data, isJson)
 }
 
 cli.run('precedence', {
@@ -86,21 +92,17 @@ cli.run('precedence', {
       _commands: {
         list: {
           _description: 'List identities.',
-          _exec: async () => {
-            out(await Promise.all((await list()).map(async id => {
-              return {
-                id,
-                payload: parseTokenPayload(await getToken(id))
-              }
-            })), true)
-          }
+          _exec: async () => out(await Promise.all((await list()).map(async id => {
+            return {
+              id,
+              payload: parseTokenPayload(await getToken(id))
+            }
+          })), true)
         },
         logout: {
-          _description: 'Remove an identity ("ALL" to remove all identities)',
+          _description: 'Remove an identity ("ALL" to remove all identities).',
           _parameters: { ID: true },
-          _exec: async (command, definition, args) => {
-            out(await logout(args[0] === 'ALL' ? null : args[0]), true)
-          }
+          _exec: async (command, definition, args) => out(await logout(args[0] === 'ALL' ? null : args[0]), true)
         }
       }
     },
@@ -112,7 +114,7 @@ cli.run('precedence', {
           _description: 'Generate an ECDSA key pair (randomized if SECRET is not defined).',
           _exec: (command, definitions, args) => {
             const key = args ? require('../../common/src/utils').sha256(args[0]) : require('../../common/src/utils').random(32)
-            out({
+            return out({
               PRIVATE_KEY: key,
               PUBLIC_ADDRESS: require('../../common/src/signature').privateToAddress(key)
             }, true)
@@ -121,9 +123,7 @@ cli.run('precedence', {
         'private-key-to-address': {
           _description: 'Extract address from ECDSA private key.',
           _parameters: { KEY: true },
-          _exec: (command, definitions, args) => {
-            out(require('../../common/src/signature').privateToAddress(args[0]))
-          }
+          _exec: (command, definitions, args) => out(require('../../common/src/signature').privateToAddress(args[0]))
         },
         sign: {
           _description: 'Sign the SHA-256 of DATA (utf8 string).',
@@ -132,12 +132,12 @@ cli.run('precedence', {
             {
               name: 'file',
               type: Boolean,
-              description: 'Use the data contained in the file DATA.'
+              description: 'Use the data contained in the file DATA'
             },
             {
               name: 'hex',
               type: Boolean,
-              description: 'Sign directly DATA (hexadecimal string).'
+              description: 'Sign directly DATA (hexadecimal string)'
             }
           ],
           _exec: async (command, definitions, args, options) => {
@@ -166,7 +166,7 @@ cli.run('precedence', {
             } else {
               data = require('../../common/src/utils').sha256(data)
             }
-            out(require('../../common/src/signature').sign(Buffer.from(data, 'hex'), process.env.PRECEDENCE_PRIVATE_KEY))
+            return out(require('../../common/src/signature').sign(Buffer.from(data, 'hex'), process.env.PRECEDENCE_PRIVATE_KEY))
           }
         }
       }
@@ -263,22 +263,22 @@ You can explicitly set the previous record(s) of the record you are creating (by
             lazyMultiple: true
           }],
           _exec: async (command, definitions, args, options) => {
-            let buffer
+            let data
             if (args && options.file) {
-              buffer = require('fs').readFileSync(args[0])
+              data = require('fs').readFileSync(args[0])
             } else if (args) {
-              buffer = Buffer.from(args[0], 'utf-8')
+              data = Buffer.from(args[0], 'utf-8')
             } else if (!process.stdin.isTTY) {
-              buffer = await new Promise(resolve => {
-                const chuncks = []
-                process.stdin.on('data', chunck => chuncks.push(chunck))
+              data = await new Promise(resolve => {
+                const chunks = []
+                process.stdin.on('data', chunk => chunks.push(chunk))
                 process.stdin.on('end', () => {
-                  resolve(Buffer.concat(chuncks))
+                  resolve(Buffer.concat(chunks))
                 })
               })
             }
             delete options.file
-            return exec('POST', '/records', options, buffer, { 'content-type': 'application/octet-stream' })
+            return exec('POST', '/records', options, data, { 'content-type': 'application/octet-stream' })
           }
         },
         get: {
@@ -288,7 +288,7 @@ You can explicitly set the previous record(s) of the record you are creating (by
             {
               name: 'data',
               type: Boolean,
-              description: 'Get the original data.'
+              description: 'Get the original data'
             }
           ],
           _exec: (command, definitions, args, options) => exec('GET', `/records/${args[0]}`, options)
@@ -301,4 +301,4 @@ You can explicitly set the previous record(s) of the record you are creating (by
       }
     }
   }
-}).then(code => process.exit(code))
+}).finally()
