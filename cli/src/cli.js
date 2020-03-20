@@ -177,9 +177,9 @@ cli.run('precedence', {
         create: {
           _description: 'Create a block with all the records that are not part of any block yet.',
           _options: [{
-            name: 'no-empty',
+            name: 'empty',
             type: Boolean,
-            description: 'To prevent the creation of an empty block'
+            description: 'To allow the creation of an empty block'
           }, {
             name: 'max',
             type: Number,

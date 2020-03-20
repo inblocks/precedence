@@ -943,7 +943,7 @@ curl -XGET "$api/records/75bdb5a188a281c9576331b5573d5be50f7802d92cc591d9dbbbfbc
 
 ### Block API calls
 
-You can create a block by running:
+You can create a block containing a maximum of 1 record by running:
 
 ```bash
 curl -XPOST "$api/blocks?pretty=true&max=1"
@@ -982,8 +982,6 @@ The block creation API method returns the following informations:
     - `root` is the root hash of the previous block;
     - `proof` is the associated proof in this block.
 
-To create a block without any limit on the number of record that it will contain you can run the same API call without the `max` parameter.
-
 ```bash
 curl -XPOST "$api/blocks?pretty=true"
 ```
@@ -1009,10 +1007,26 @@ curl -XPOST "$api/blocks?pretty=true"
 }
 ```
 
-You can run the block creation again even if you do not have sent any new records.
+You can run a block creation again to see that by default no block is created if there is no pending record.
 
 ```bash
 curl -XPOST "$api/blocks?pretty=true"
+```
+
+```json
+{
+  "took": 23,
+  "status": 200,
+  "data": null
+}
+```
+
+If you want to allow the creation of an empty block, you can use the `empty` option.
+
+To be sure to create an empty block, you must use both `empty=true` and `max=0`.
+
+```bash
+curl -XPOST "$api/blocks?pretty=true&empty=true"
 ```
 
 ```json
@@ -1035,24 +1049,6 @@ curl -XPOST "$api/blocks?pretty=true"
   }
 }
 ```
-
-A empty block is created.
-
-If you want to avoid block creation with 0 record you can use the `no-empty` option.
-
-```bash
-curl -XPOST "$api/blocks?pretty=true&no-empty=true"
-```
-
-```json
-{
-  "took": 23,
-  "status": 200,
-  "data": null
-}
-```
-
-There was no record to put in the block so the API call returned no error and did not create any new block.
 
 ---
 

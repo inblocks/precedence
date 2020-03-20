@@ -114,9 +114,9 @@ require('../../common/src/cli').run('precedence-api', {
     type: String,
     description: 'Set the cron to automatically and periodically create a new block\n(example: "* * * * *" to create a block every minute)'
   }, {
-    name: 'block-no-empty',
+    name: 'block-empty',
     type: Boolean,
-    description: 'To prevent the creation of empty blocks'
+    description: 'To allow the creation of empty blocks'
   }, {
     name: 'block-max',
     type: Number,
@@ -248,7 +248,7 @@ require('../../common/src/cli').run('precedence-api', {
     app.get('/blocks', getBlock()) // get pending block
     app.get('/blocks/:id', getBlock()) // get a block by its root/index
     app.post('/blocks', api((req, res) => {
-      const empty = req.query['no-empty'] !== 'true'
+      const empty = req.query['empty'] === 'true'
       const max = req.query.max ? Number(req.query.max) : undefined
       return precedence.createBlock(empty, max).then(result => {
         res.status(result ? 201 : 200)
@@ -283,7 +283,7 @@ require('../../common/src/cli').run('precedence-api', {
               isRunning = true
               let count = -1
               do {
-                const block = await precedence.createBlock(count === -1 ? !options['block-no-empty'] : false, options['block-max'])
+                const block = await precedence.createBlock(count === -1 ? options['block-empty'] : false, options['block-max'])
                 log(`block: ${JSON.stringify(block)}`)
                 if (!block) {
                   break

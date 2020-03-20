@@ -1,7 +1,7 @@
 module.exports = {
   block: {
     max: -1,
-    empty: true
+    empty: false
   },
   webhooks: []
 }
