@@ -8,6 +8,12 @@ const defaults = {
   api: 'http://localhost:9000'
 }
 
+const checkPrivateKey = (command, definitions) => {
+  if (!process.env.PRECEDENCE_PRIVATE_KEY) {
+    return cli.errorUsage(command, definitions, 'PRECEDENCE_PRIVATE_KEY environment variable must be defined')
+  }
+}
+
 const out = (value, stringify) => new Promise((resolve, reject) => {
   process.stdout.write(stringify ? `${JSON.stringify(value, null, 2)}\n` : value, error => {
     if (error) {
@@ -66,7 +72,7 @@ cli.run('precedence', {
       header: 'Environment variables',
       content: [{
         name: 'PRECEDENCE_PRIVATE_KEY',
-        description: 'Set the ECDSA private key to sign records (otherwise records are signed by the node)'
+        description: 'Set the ECDSA private key to sign records'
       }, {
         name: 'PRECEDENCE_API',
         description: `Set the API base URL (default: "${defaults.api}")`
@@ -117,14 +123,16 @@ cli.run('precedence', {
             const key = args ? require('../../common/src/utils').sha256(args[0]) : require('../../common/src/utils').random(32)
             return out({
               PRIVATE_KEY: key,
-              PUBLIC_ADDRESS: require('../../common/src/signature').privateToAddress(key)
+              address: require('../../common/src/signature').privateToAddress(key)
             }, true)
           }
         },
         'private-key-to-address': {
           _description: 'Extract address from ECDSA private key.',
-          _parameters: { KEY: true },
-          _exec: (command, definitions, args) => out(require('../../common/src/signature').privateToAddress(args[0]))
+          _exec: (command, definitions, args) => {
+            checkPrivateKey(command, definitions)
+            return out({ address: require('../../common/src/signature').privateToAddress(process.env.PRECEDENCE_PRIVATE_KEY) }, true)
+          }
         },
         sign: {
           _description: 'Sign the SHA-256 of DATA (utf8 string).',
@@ -142,13 +150,12 @@ cli.run('precedence', {
             }
           ],
           _exec: async (command, definitions, args, options) => {
-            if (!process.env.PRECEDENCE_PRIVATE_KEY) {
-              return cli.errorUsage(command, definitions, 'PRECEDENCE_PRIVATE_KEY environment variable must be defined')
-            }
+            checkPrivateKey(command, definitions)
             if (options.file && options.hex) {
               return cli.errorUsage(command, definitions, 'file and hex options are exclusives')
             }
             let data = args[0]
+            console.log(args[0])
             if (options.file) {
               const hash = require('crypto').createHash('sha256')
               data = await new Promise((resolve, reject) => {
@@ -161,13 +168,17 @@ cli.run('precedence', {
                 })
               })
             } else if (options.hex) {
-              if (!/^[a-fA-F0-9]{64}$/.test(data)) {
-                return cli.errorUsage(command, definitions, 'DATA must match ^[a-fA-F0-9]\\{64\\}$')
+              if (!/^[0-9a-fA-F]{64}$/.test(data)) {
+                return cli.errorUsage(command, definitions, 'DATA must match ^[0-9a-fA-F]\\{64\\}$')
               }
             } else {
               data = require('../../common/src/utils').sha256(data)
             }
-            return out(require('../../common/src/signature').sign(Buffer.from(data, 'hex'), process.env.PRECEDENCE_PRIVATE_KEY))
+            return out({
+              data,
+              address: require('../../common/src/signature').privateToAddress(process.env.PRECEDENCE_PRIVATE_KEY),
+              signature: require('../../common/src/signature').sign(Buffer.from(data, 'hex'), process.env.PRECEDENCE_PRIVATE_KEY)
+            }, true)
           }
         }
       }
@@ -242,7 +253,7 @@ You can explicitly set the previous record(s) of the record you are creating (by
             name: 'hash',
             type: String,
             description: 'Set the DATA SHA-256 hexadecimal string',
-            lazyMultiple: true
+            lazyMultiple: false
           }, {
             name: 'id',
             type: String,

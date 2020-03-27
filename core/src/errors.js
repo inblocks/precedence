@@ -9,7 +9,31 @@ class PrecedenceError extends Error {
 
 class ConflictError extends PrecedenceError {
   constructor () {
-    super('CORE.Conflict', 'Conflict')
+    super('CORE.ConflictError', 'Conflict')
+  }
+}
+
+class HashFormatError extends PrecedenceError {
+  constructor (hash) {
+    super('CORE.HashFormatError', `Provided hash "${hash}" mismatches ^[0-9a-fA-F]{64}$`)
+  }
+}
+
+class HashMismatchError extends PrecedenceError {
+  constructor (provided, computed) {
+    super('CORE.HashMismatchError', `Provided hash "${provided}" mismatches "${computed}"`)
+  }
+}
+
+class InvalidSignatureError extends PrecedenceError {
+  constructor (signature, address, data) {
+    super('CORE.InvalidSignatureError', 'Invalid signature', { signature, address, data })
+  }
+}
+
+class MissingDataError extends PrecedenceError {
+  constructor () {
+    super('CORE.MissingDataError', 'Data is missing')
   }
 }
 
@@ -25,23 +49,13 @@ class RecordNotFoundError extends PrecedenceError {
   }
 }
 
-class HashMismatchedDataError extends PrecedenceError {
-  constructor (provided, computed) {
-    super('CORE.HashMismatchedDataError', `Provided SHA-256 hexadecimal string "${provided}" mismatches "${computed}"`)
-  }
-}
-
-class InvalidSignatureError extends PrecedenceError {
-  constructor (signature, address, data) {
-    super('CORE.InvalidSignatureError', 'Invalid signature', { signature, address, data })
-  }
-}
-
 module.exports = {
   PrecedenceError,
   ConflictError,
+  HashFormatError,
+  HashMismatchError,
+  InvalidSignatureError,
+  MissingDataError,
   RecordAlreadyExistsError,
-  RecordNotFoundError,
-  HashMismatchedDataError,
-  InvalidSignatureError
+  RecordNotFoundError
 }

@@ -2,10 +2,12 @@ const { format } = require('util')
 
 const {
   ConflictError,
+  HashFormatError,
+  HashMismatchError,
+  InvalidSignatureError,
+  MissingDataError,
   RecordAlreadyExistsError,
-  RecordNotFoundError,
-  HashMismatchedDataError,
-  InvalidSignatureError
+  RecordNotFoundError
 } = require('./errors')
 const { random, sortObject, sha256 } = require('../../common/src/utils')
 const { timeToTimestamp, execOperations } = require('./redis')
@@ -45,39 +47,52 @@ const createRecords = async (redis, records, preExec) => {
       chain: {},
       record: {}
     }
-    const ids = []
     const watched = []
     const previous = {}
     const id = random(32)
-    for (const record of records) {
+    records = records.map(record => {
       const id = record.id ? sha256(record.id) : random(32)
       if (local.record[id]) {
         throw new ConflictError()
       }
       local.record[id] = true
-      if (!record.hash && !record.data) {
-        throw new Error('data and or hash must be provided')
-      }
-      if (!record.hash) {
-        record.hash = sha256(record.data)
-      } else if (record.data) {
-        const hash = sha256(record.data)
-        if (record.hash !== hash) {
-          throw new HashMismatchedDataError(record.hash, hash)
+      const data = record.data && record.data.length > 0 ? record.data : undefined
+      const hash = (() => {
+        if (data) {
+          if (!record.hash) {
+            return sha256(record.data)
+          } else {
+            const hash = sha256(record.data)
+            if (record.hash.toLowerCase() === hash) {
+              return hash
+            } else {
+              throw new HashMismatchError(record.hash, hash)
+            }
+          }
+        } else if (record.hash) {
+          if (record.hash.toString().match(/^[0-9a-fA-F]{64}$/)) {
+            return record.hash.toLowerCase()
+          } else {
+            throw new HashFormatError(record.hash)
+          }
+        } else {
+          return undefined
         }
+      })()
+      if (!data && (!hash || record.store)) {
+        throw new MissingDataError()
       }
-      {
-        let ok = false
+      let signature = false
+      if (record.signature || record.address) {
         try {
-          ok = recover(Buffer.from(record.hash, 'hex'), record.signature) === (record.address || '').toLowerCase()
+          signature = recover(Buffer.from(hash, 'hex'), record.signature) === (record.address || '').toLowerCase()
         } catch (e) {
           // nothing to do
         }
-        if (!ok) {
-          throw new InvalidSignatureError(record.signature, record.address, record.hash)
+        if (!signature) {
+          throw new InvalidSignatureError(record.signature, record.address, hash)
         }
       }
-      ids.push(id)
       watched.push(format(tmpRecordKeyFormat, id))
       if (record.chains) {
         watched.push(...record.chains.map(chain => format(tmpChainKeyFormat, chain)))
@@ -90,7 +105,17 @@ const createRecords = async (redis, records, preExec) => {
           previous[id] = null
         }
       }
-    }
+      return {
+        id,
+        hash,
+        data,
+        address: signature ? record.address : undefined,
+        signature: signature ? record.signature : undefined,
+        store: record.store,
+        chains: record.chains,
+        previous: record.previous
+      }
+    })
     const timestamp = await (async () => {
       const operations = [
         ['time'],
@@ -104,9 +129,7 @@ const createRecords = async (redis, records, preExec) => {
       if (chains.length > 0) {
         operations.push(['hmget', chainsHashKey, ...chains])
       }
-      for (const id of ids) {
-        operations.push(['hexists', recordsHashKey, id])
-      }
+      records.forEach(record => operations.push(['hexists', recordsHashKey, record.id]))
       const previousIds = Object.keys(previous)
       for (const id of previousIds) {
         operations.push(['hexists', recordsHashKey, id])
@@ -120,11 +143,11 @@ const createRecords = async (redis, records, preExec) => {
           local.chain[chains[i]] = chainIds[i]
         }
       }
-      for (const id of ids) {
+      records.forEach(record => {
         if (results[++index] === 1) {
-          throw new RecordAlreadyExistsError(id)
+          throw new RecordAlreadyExistsError(record.id)
         }
-      }
+      })
       local.record = {}
       for (const id of previousIds) {
         if (results[++index] === 1) {
@@ -153,27 +176,28 @@ const createRecords = async (redis, records, preExec) => {
     const operations = [['del'].concat(watched)]
     const result = []
     for (let i = 0; i < records.length; i++) {
-      const id = ids[i]
       const record = {
         provable: null,
         timestamp,
         seed: random(32),
         hash: records[i].hash,
-        address: records[i].address,
-        signature: records[i].signature,
         chains: {}
       }
       record.provable = {
-        id,
+        id: records[i].id,
         seed: obfuscate(record.seed, record.seed),
         hash: obfuscate(record.seed, record.hash),
-        address: obfuscate(record.seed, record.address),
-        signature: obfuscate(record.seed, record.signature),
         chains: {},
         previous: {}
       }
+      if (records[i].signature) {
+        record.address = records[i].address
+        record.signature = records[i].signature
+        record.provable.address = obfuscate(record.seed, record.address)
+        record.provable.signature = obfuscate(record.seed, record.signature)
+      }
       if (records[i].store === true) {
-        operations.push(['hset', recordsDataHashKey, id, records[i].data])
+        operations.push(['hset', recordsDataHashKey, records[i].id, records[i].data])
         record.data = {
           bytes: records[i].data.length
         }
@@ -181,7 +205,7 @@ const createRecords = async (redis, records, preExec) => {
       if (records[i].chains) {
         for (const chain of records[i].chains) {
           const last = local.chain[chain]
-          local.chain[chain] = id
+          local.chain[chain] = records[i].id
           record.chains[chain] = last
           if (last) {
             record.provable.previous[last] = true
@@ -200,8 +224,8 @@ const createRecords = async (redis, records, preExec) => {
       }
       record.provable.previous = Object.keys(record.provable.previous).sort()
       operations.push(
-        ['xadd', recordsStream, '*', '', id],
-        getSetRecordOperation(id, record)
+        ['xadd', recordsStream, '*', '', records[i].id],
+        getSetRecordOperation(records[i].id, record)
       )
       result.push(record)
     }

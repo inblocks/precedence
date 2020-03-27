@@ -28,6 +28,7 @@ module.exports = jsonPackage => {
     if (config.data != null && !Buffer.isBuffer(config.data)) {
       throw new Error('data must be a buffer')
     }
+    const hash = config.queryParams && config.queryParams.hash
     config.headers = config.headers || {}
     config.maxContentLength = config.maxContentLength || Infinity
     config.timeout = config.timeout || 0
@@ -38,7 +39,7 @@ module.exports = jsonPackage => {
     }
     if (process.env.PRECEDENCE_PRIVATE_KEY) {
       config.headers['precedence-address'] = privateToAddress(process.env.PRECEDENCE_PRIVATE_KEY)
-      config.headers['precedence-signature'] = sign(Buffer.from(sha256(config.data), 'hex'), process.env.PRECEDENCE_PRIVATE_KEY)
+      config.headers['precedence-signature'] = sign(Buffer.from(hash || sha256(config.data), 'hex'), process.env.PRECEDENCE_PRIVATE_KEY)
     }
     if (debug.enabled) {
       debug(`${config.method} ${config.url} ${JSON.stringify(config.headers)} ${config.data ? config.data.length : null} ${config.timeout}`)

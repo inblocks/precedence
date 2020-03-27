@@ -8,11 +8,11 @@ const { sha256 } = require('../../common/src/utils')
 const {
   PrecedenceError,
   RecordNotFoundError,
-  RecordDataNotFoundError,
   BlockNotFoundError,
   ChainNotFoundError,
-  UnsupportedMediaTypeError,
-  RequestEntityTooLargeError
+  RecordDataNotFoundError,
+  RequestEntityTooLargeError,
+  UnsupportedMediaTypeError
 } = require('./errors')
 
 const defaults = {
@@ -25,7 +25,7 @@ const defaults = {
 // APPEND ONLY!
 const error = {
   UNKNOWN: [500, 1],
-  'CORE.Conflict': [409, 2],
+  'CORE.ConflictError': [409, 2],
   'CORE.RecordAlreadyExistsError': [409, 3],
   'CORE.RecordNotFoundError': [404, 4],
   'API.RecordDataNotFoundError': [404, 5],
@@ -33,8 +33,10 @@ const error = {
   'API.ChainNotFoundError': [404, 7],
   'API.UnsupportedMediaTypeError': [415, 8],
   'API.RequestEntityTooLargeError': [413, 9],
-  'CORE.HashMismatchedDataError': [400, 11],
-  'CORE.InvalidSignatureError': [400, 12]
+  'CORE.HashMismatchError': [400, 11],
+  'CORE.InvalidSignatureError': [400, 12],
+  'CORE.MissingDataError': [400, 13],
+  'CORE.HashFormatError': [400, 14]
 }
 
 const api = fn => async (req, res) => {
@@ -80,16 +82,12 @@ const api = fn => async (req, res) => {
 const log = (string) => console.log(`LOG    - ${new Date().toISOString()} - ${string}`)
 
 const getNodeAddress = () => {
-  if (!process.env.PRECEDENCE_PRIVATE_KEY) {
-    console.error('ERROR: The environment variable PRECEDENCE_PRIVATE_KEY must be defined')
+  if (!process.env.PRECEDENCE_PRIVATE_KEY) return null
+  try {
+    return require('../../common/src/signature').privateToAddress(process.env.PRECEDENCE_PRIVATE_KEY)
+  } catch (e) {
+    console.error('ERROR: PRECEDENCE_PRIVATE_KEY must match [0-9a-zA-Z]{64}')
     process.exit(1)
-  } else {
-    try {
-      return require('../../common/src/signature').privateToAddress(process.env.PRECEDENCE_PRIVATE_KEY)
-    } catch (e) {
-      console.error('ERROR: PRECEDENCE_PRIVATE_KEY must match [0-9a-zA-Z]{64}')
-      process.exit(1)
-    }
   }
 }
 
@@ -104,7 +102,9 @@ require('../../common/src/cli').run('precedence-api', {
       header: 'Environment variables',
       content: [{
         name: 'PRECEDENCE_PRIVATE_KEY',
-        description: 'Set the ECDSA private key to sign webhooks and records (if not already done by the client)'
+        description: `Set the ECDSA private key to sign
+        - webhooks
+        - records, if not already done by the client`
       }]
     })
     return sections
@@ -205,19 +205,22 @@ require('../../common/src/cli').run('precedence-api', {
       }
     }), api(async (req, res) => {
       const data = req.data || Buffer.from([])
-      const [address, signature] = req.headers['precedence-address'] && req.headers['precedence-signature']
-        ? [req.headers['precedence-address'], req.headers['precedence-signature']]
-        : [nodeAddress, sign(Buffer.from(req.query.hash || sha256(data), 'hex'), process.env.PRECEDENCE_PRIVATE_KEY)]
-      return precedence.createRecords([{
+      const record = {
         id: req.query.id,
         hash: req.query.hash,
-        data: req.query.hash && data.length === 0 ? undefined : data,
+        data,
         chains: Array.isArray(req.query.chain) ? req.query.chain : (req.query.chain && [req.query.chain]),
         previous: Array.isArray(req.query.previous) ? req.query.previous : (req.query.previous && [req.query.previous]),
-        store: req.query.store === 'true',
-        address,
-        signature
-      }]).then(result => {
+        store: req.query.store === 'true'
+      }
+      if (req.headers['precedence-address'] || req.headers['precedence-signature']) {
+        record.address = req.headers['precedence-address']
+        record.signature = req.headers['precedence-signature']
+      } else if (process.env.PRECEDENCE_PRIVATE_KEY) {
+        record.address = nodeAddress
+        record.signature = sign(Buffer.from(req.query.hash || sha256(data), 'hex'), process.env.PRECEDENCE_PRIVATE_KEY)
+      }
+      return precedence.createRecords([record]).then(result => {
         res.status(201)
         return result[0]
       })
@@ -248,7 +251,7 @@ require('../../common/src/cli').run('precedence-api', {
     app.get('/blocks', getBlock()) // get pending block
     app.get('/blocks/:id', getBlock()) // get a block by its root/index
     app.post('/blocks', api((req, res) => {
-      const empty = req.query['empty'] === 'true'
+      const empty = req.query.empty === 'true'
       const max = req.query.max ? Number(req.query.max) : undefined
       return precedence.createBlock(empty, max).then(result => {
         res.status(result ? 201 : 200)

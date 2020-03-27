@@ -1,17 +1,13 @@
 const {
   PrecedenceError,
   ConflictError,
+  HashFormatError,
+  HashMismatchError,
+  InvalidSignatureError,
+  MissingDataError,
   RecordAlreadyExistsError,
-  RecordNotFoundError,
-  HashMismatchedDataError,
-  InvalidSignatureError
+  RecordNotFoundError
 } = require('../../core/src/errors')
-
-class RecordDataNotFoundError extends PrecedenceError {
-  constructor (id) {
-    super('API.RecordDataNotFoundError', `Record "${id}" data not found`)
-  }
-}
 
 class BlockNotFoundError extends PrecedenceError {
   constructor (id) {
@@ -25,9 +21,9 @@ class ChainNotFoundError extends PrecedenceError {
   }
 }
 
-class UnsupportedMediaTypeError extends PrecedenceError {
-  constructor () {
-    super('API.UnsupportedMediaTypeError', 'Unsupported media type')
+class RecordDataNotFoundError extends PrecedenceError {
+  constructor (id) {
+    super('API.RecordDataNotFoundError', `Record "${id}" data not found`)
   }
 }
 
@@ -37,16 +33,25 @@ class RequestEntityTooLargeError extends PrecedenceError {
   }
 }
 
+class UnsupportedMediaTypeError extends PrecedenceError {
+  constructor () {
+    super('API.UnsupportedMediaTypeError', 'Unsupported media type')
+  }
+}
+
 module.exports = {
   PrecedenceError,
   ConflictError,
+  HashFormatError,
+  HashMismatchError,
+  InvalidSignatureError,
+  MissingDataError,
   RecordAlreadyExistsError,
   RecordNotFoundError,
-  HashMismatchedDataError,
-  InvalidSignatureError,
-  RecordDataNotFoundError,
+
   BlockNotFoundError,
   ChainNotFoundError,
-  UnsupportedMediaTypeError,
-  RequestEntityTooLargeError
+  RecordDataNotFoundError,
+  RequestEntityTooLargeError,
+  UnsupportedMediaTypeError
 }
