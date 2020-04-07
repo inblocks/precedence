@@ -191,7 +191,7 @@ cli.run('precedence', {
           _options: [{
             name: 'empty',
             type: Boolean,
-            description: 'To allow the creation of an empty block'
+            description: 'Allow the creation of an empty block'
           }, {
             name: 'max',
             type: Number,

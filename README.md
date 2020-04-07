@@ -1140,7 +1140,7 @@ curl -XGET "$api/blocks/0248d37c2dcfabcc13afc7bf7d793dbdf50c432c9a0523312dcb1c6a
 ## Tips
 
 ```bash
-# create a block with a file
+# create a record from a file
 cat FILE | curl -XPOST -H "Content-Type: application/octet-stream" "$api/records" --data-binary @-
 
 # redis interactive client
