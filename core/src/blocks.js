@@ -19,8 +19,8 @@ const seedKey = 'seed'
 
 const blockResponse = (block) => {
   return block && {
-    root: block.root,
     index: block.index,
+    root: block.root,
     timestamp: block.timestamp,
     count: block.count,
     previous: block.previous,
@@ -205,7 +205,9 @@ module.exports = {
       return null
     }
     return {
+      index: block.index,
       root: block.root,
+      timestamp: block.timestamp,
       proof: await getProof(getTrie(redis, block.index, Buffer.from(block.root, 'hex')), key)
     }
   },
