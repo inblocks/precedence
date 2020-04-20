@@ -17,6 +17,7 @@ module.exports = (redis, options = defaults) => {
   }
 
   return {
+    redis,
     getRecord: _getRecord,
     getLastRecord: async chain => {
       const id = (await getLastRecordIds(redis, chain))[0]
