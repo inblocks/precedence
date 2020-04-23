@@ -91,6 +91,8 @@ const getNodeAddress = () => {
   }
 }
 
+let server
+
 require('../../common/src/cli').run('precedence-api', {
   _help: sections => {
     sections.splice(0, 0, {
@@ -269,7 +271,7 @@ require('../../common/src/cli').run('precedence-api', {
       return Promise.reject(error)
     })(req, res))
 
-    require('http').createServer(app)
+    server = require('http').createServer(app)
       .listen(options.port || defaults.port, '0.0.0.0', () => {
         log(`listen on 0.0.0.0:${options.port || defaults.port}`)
         if (options['block-cron']) {
@@ -308,4 +310,8 @@ require('../../common/src/cli').run('precedence-api', {
       })
     return new Promise(() => null)
   }
-})
+}, () => new Promise(resolve => {
+  server.close(() => {
+    resolve(0)
+  })
+}))

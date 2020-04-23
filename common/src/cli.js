@@ -144,13 +144,12 @@ const run = async (argv, command, definitions) => {
   return printUsage(1, command, definitions)
 }
 
-process.on('SIGINT', () => {
-  process.exit(0)
-})
-
 module.exports = {
   errorUsage,
-  run: async (program, definitions) => {
+  run: async (program, definitions, shutdownHook) => {
+    ['SIGINT', 'SIGTERM'].forEach(signal => {
+      process.on(signal, async () => process.exit(shutdownHook ? await shutdownHook(signal) : 0))
+    })
     try {
       const code = await run(process.argv.slice(2), program, definitions)
       // console.log('code', code)
