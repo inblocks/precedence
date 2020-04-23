@@ -182,14 +182,14 @@ const createBlock = async (redis, empty, max, preExec) => {
     if (seeds.length !== 1 || seeds[0] !== seed) {
       throw new ConflictError()
     }
-    const result = blockResponse(block)
+    let result = blockResponse(block)
     const operations = [
       ['del', tmpTriesSeedSet],
       ['xadd', blocksStream, streamId, '', JSON.stringify(block)],
       ['hmset', blocksHashKey, index, streamId, root, streamId]
     ]
     if (preExec) {
-      await preExec(redis, operations, result)
+      result = await preExec(redis, operations, result)
     }
     await execOperations(redis, operations)
     return result

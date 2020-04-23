@@ -174,7 +174,7 @@ const createRecords = async (redis, records, preExec) => {
       throw new ConflictError()
     }
     const operations = [['del'].concat(watched)]
-    const result = []
+    let result = []
     for (let i = 0; i < records.length; i++) {
       const record = {
         provable: null,
@@ -233,7 +233,7 @@ const createRecords = async (redis, records, preExec) => {
       operations.push(['hset', chainsHashKey, chain, id])
     })
     if (preExec) {
-      await preExec(redis, operations, result)
+      result = await preExec(redis, operations, result)
     }
     await execOperations(redis, operations)
     tmpKeys = null
@@ -251,7 +251,7 @@ const deleteRecord = async (redis, id, preExec) => {
   if (!record || !record.data) {
     return null
   }
-  const result = {
+  let result = {
     bytes: record.data.bytes
   }
   delete record.data
@@ -260,7 +260,7 @@ const deleteRecord = async (redis, id, preExec) => {
     ['hdel', recordsDataHashKey, id]
   ]
   if (preExec) {
-    await preExec(redis, operations, result)
+    result = await preExec(redis, operations, result)
   }
   await execOperations(redis, operations)
   return result
@@ -271,12 +271,12 @@ const deleteChain = async (redis, chain, preExec) => {
   if (!id) {
     return null
   }
-  const result = {
+  let result = {
     id
   }
   const operations = [['hdel', chainsHashKey, chain]]
   if (preExec) {
-    await preExec(redis, operations, result)
+    result = await preExec(redis, operations, result)
   }
   await execOperations(redis, operations)
   return result
