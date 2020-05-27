@@ -1,12 +1,12 @@
 const { AbstractLevelDOWN } = require('abstract-leveldown')
 const { inherits } = require('util')
 
-function Redisdown (redis, key, prefix, operation) {
+function Redisdown (redis, key, prefix, ...operations) {
   AbstractLevelDOWN.call(this)
   this.redis = redis
   this.key = key
-  this.prefix = Buffer.from(prefix.toString(), 'utf8')
-  this.operations = [operation]
+  this.prefix = prefix && Buffer.from(prefix.toString(), 'utf8')
+  this.operations = operations
   return this
 }
 
@@ -43,7 +43,7 @@ Redisdown.prototype._batch = function (ops, options, callback) {
   })
 }
 
-module.exports = (redis, key, prefix, operation) => new Redisdown(redis, key, prefix, operation)
+module.exports = (redis, key, prefix, ...operations) => new Redisdown(redis, key, prefix, ...operations)
 module.exports.delete = async (redis, key) => {
   await redis.del(key)
 }
