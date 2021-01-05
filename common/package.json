@@ -2,7 +2,7 @@
   "name": "@precedence/common",
   "private": true,
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "command-line-args": "^5.1.1",
     "command-line-usage": "^6.1.0",
     "debug": "^4.1.1",
