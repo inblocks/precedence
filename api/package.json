@@ -8,8 +8,8 @@
     "body-parser": "^1.19.0",
     "cron": "^1.8.2",
     "express": "^4.17.1",
-    "http-errors": "^1.7.3",
-    "ioredis": "^4.17.1",
+    "http-errors": "^1.8.0",
+    "ioredis": "^4.19.4",
     "morgan": "^1.10.0"
   },
   "devDependencies": {

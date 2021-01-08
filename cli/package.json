@@ -5,7 +5,7 @@
     "precedence": "./src/cli.js"
   },
   "dependencies": {
-    "debug": "^4.1.1"
+    "debug": "^4.3.1"
   },
   "devDependencies": {
     "standard": "^14.3.4"
