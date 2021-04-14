@@ -21,7 +21,7 @@ All these features allow you bring secure blockchain-powered traceability featur
 
 **_precedence_** is agnostic to the data type considered and can be use to bring immutable and undeniable traceability to every data that you already operate in your information system. Your system is most likely already compliant and there is no need to apply modification to it to start using **_precedence_**.
 
-**_precedence_** is edited by [**_inBlocks_**](https://precedence.inblocks.io) so you can rely on us for hosting the solution for you, supporting you during the deployment and providing you a very strong SLA.
+**_precedence_** is edited by [**_inBlocks_**](https://inblocks.io) so you can rely on us for hosting the solution for you, supporting you during the deployment and providing you a very strong SLA.
 
 In the following:
 - "fingerprint" means "hexadecimal string format for the hash computed with SHA-256 algorithm";
