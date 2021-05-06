@@ -25,7 +25,7 @@ All these features allow you bring secure blockchain-powered traceability featur
 
 In the following:
 - "fingerprint" means "hexadecimal string format for the hash computed with SHA-256 algorithm";
-- "obfuscated fingerprint of <VALUE>" means fingerprint of "<SEED> <VALUE>".
+- "obfuscated fingerprint of \<VALUE\>" means fingerprint of "\<SEED\> \<VALUE\>".
 
 # Quick Start
 
@@ -147,7 +147,7 @@ For sure you need some explanation about the returned JSON response:
   - `signature` is the Ethereum signature of the root `hash`.
 
 We can check that:
-- the fingerprint of `seed` value is equal to `provable.seed` value:
+- the obfuscated fingerprint of `seed` value is equal to `provable.seed` value:
 ```bash
 echo -n 'd86323c48bbc83e658420137d368cbcaa68ad3db060a8f52e6fa328d818675b1 d86323c48bbc83e658420137d368cbcaa68ad3db060a8f52e6fa328d818675b1' | sha256sum
 ```
