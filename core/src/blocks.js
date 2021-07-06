@@ -8,6 +8,8 @@ const { getTime, getNextStreamId, execOperations } = require('./redis')
 const RedisDown = require('./redisdown')
 const { getRecord } = require('./records')
 
+const MAX_PENDING_RECORDS = 1000
+
 const recordStream = 'records:x'
 const blocksStream = 'blocks:x'
 const blocksHashKey = 'blocks:h'
@@ -86,11 +88,23 @@ const getBlock = async (redis, id = null, records = false) => {
     }
   } else {
     const last = await getLastBlockInfo(redis)
-    const res = (await redis.xrange(recordStream, last ? getNextStreamId(last.streamId) : '-', '+')).map(o => o[1][1])
+    const to = await getLastTodoStreamId(redis)
+    const res = to === null ? [] : await redis.xrange(recordStream, last ? getNextStreamId(last.streamId) : '-', to, 'COUNT', MAX_PENDING_RECORDS)
+    let count = res.length
+    if (count === MAX_PENDING_RECORDS) {
+      let tmp = res
+      while (true) {
+        tmp = await redis.xrange(recordStream, tmp[MAX_PENDING_RECORDS - 1][0], to, 'COUNT', MAX_PENDING_RECORDS)
+        count += tmp.length
+        if (tmp.length < MAX_PENDING_RECORDS) {
+          break
+        }
+      }
+    }
     block = {
-      count: res.length,
+      count,
       previous: last ? blockResponse(last) : null,
-      records: records ? res : undefined
+      records: records ? res.map(o => o[1][1]) : undefined
     }
   }
   return blockResponse(block)
