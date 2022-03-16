@@ -47,8 +47,8 @@ const getLastBlockInfo = async (redis) => {
   return getBlockInfo(redis, '+')
 }
 
-const getNextBlockInfo = async (redis, timestamp) => {
-  return parseBlockFromStream((await redis.xrange(blocksStream, timestamp, '+', 'COUNT', 1))[0])
+const getNextBlockInfo = async (redis, streamId) => {
+  return parseBlockFromStream((await redis.xrange(blocksStream, streamId, '+', 'COUNT', 1))[0])
 }
 
 const getLastTodoStreamId = async (redis) => {
@@ -56,19 +56,22 @@ const getLastTodoStreamId = async (redis) => {
   return result ? result[0] : null
 }
 
-const getProof = async (trie, key) => {
-  return new Promise((resolve, reject) => {
-    Trie.prove(trie, key, (e, prove) => {
-      try {
-        if (e) {
-          return reject(e)
-        }
-        resolve(prove.map(o => o.toString('hex')))
-      } catch (e) {
-        reject(e)
-      }
-    })
-  })
+const getProof = async (redis, streamId, key) => {
+  const block = await getNextBlockInfo(redis, streamId)
+  if (!block) {
+    return null
+  }
+  const trie = getTrie(redis, block.index, Buffer.from(block.root, 'hex'));
+  const value = await getFromTrie(trie, key);
+  if (!value) {
+    return getProof(redis, getNextStreamId(block.streamId), key)
+  }
+  return {
+    index: block.index,
+    root: block.root,
+    timestamp: block.timestamp,
+    proof: await getProofFromTrie(trie, key)
+  }
 }
 
 const getBlock = async (redis, id = null, records = false) => {
@@ -80,8 +83,8 @@ const getBlock = async (redis, id = null, records = false) => {
     }
     block = await getBlockInfo(redis, streamId)
     if (records) {
-      const start = block.index ? (await getBlock(redis, block.index - 1)).timestamp : '-'
-      const end = block.timestamp ? block.timestamp : '+'
+      const start = block.index ? getNextStreamId(await redis.hget(blocksHashKey, block.previous.root)) : '-'
+      const end = block.streamId ? block.streamId : '+'
       block.records = (await redis.xrange(recordStream, start, end)).map(o => {
         return o[1][1]
       })
@@ -116,6 +119,34 @@ const putInTrie = (trie, key, value) => {
       try {
         if (e) return reject(e)
         resolve()
+      } catch (e) {
+        reject(e)
+      }
+    })
+  })
+}
+
+const getFromTrie = (trie, key) => {
+  return new Promise((resolve, reject) => {
+    trie.get(key, (e, value) => {
+      try {
+        if (e) return reject(e)
+        resolve(value)
+      } catch (e) {
+        reject(e)
+      }
+    })
+  })
+}
+
+const getProofFromTrie = async (trie, key) => {
+  return new Promise((resolve, reject) => {
+    Trie.prove(trie, key, (e, prove) => {
+      try {
+        if (e) {
+          return reject(e)
+        }
+        resolve(prove.map(o => o.toString('hex')))
       } catch (e) {
         reject(e)
       }
@@ -188,7 +219,7 @@ const createBlock = async (redis, empty, max, preExec) => {
       root,
       previous: previous ? {
         root: previous,
-        proof: await getProof(trie, previousKey)
+        proof: await getProofFromTrie(trie, previousKey)
       } : null
     }
     await redis.watch(tmpTriesSeedSet)
@@ -213,18 +244,7 @@ const createBlock = async (redis, empty, max, preExec) => {
 }
 
 module.exports = {
-  getProof: async (redis, timestamp, key) => {
-    const block = await getNextBlockInfo(redis, timestamp)
-    if (!block) {
-      return null
-    }
-    return {
-      index: block.index,
-      root: block.root,
-      timestamp: block.timestamp,
-      proof: await getProof(getTrie(redis, block.index, Buffer.from(block.root, 'hex')), key)
-    }
-  },
+  getProof,
   getBlock,
   createBlock
 }
