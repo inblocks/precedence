@@ -155,7 +155,7 @@ echo -n 'd86323c48bbc83e658420137d368cbcaa68ad3db060a8f52e6fa328d818675b1 d86323
 ```bash
 echo -n "d86323c48bbc83e658420137d368cbcaa68ad3db060a8f52e6fa328d818675b1 $(echo -n 'value 1' | sha256sum | cut -d' ' -f1)" | sha256sum
 ```
-- the signature is valid with [https://etherscan.io/verifySig](https://etherscan.io/verifySig):
+- the signature is valid with [https://etherscan.io/verifiedSignatures](https://etherscan.io/verifiedSignatures):
   - [Step 1] Address: `0x4592350babefcc849943db091b6c49f8b86f8aaa`;
   - [Step 2] Message Signature Hash: `0xcc8bfb566fe89bdc2b6bfce1e35886cda7cf790492b117f12696eeb8ce5bcd3278c7c43cdfcda56e82c70064d7fd02ecbdc3c73caad0a7371136b491c8b44a201b`;
   - [Step 3] Enter the original message that was signed: `65da867639080176b5998c77219e2745474aa518a04268522467322f06fbd9d9`;
