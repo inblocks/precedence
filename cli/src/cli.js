@@ -290,7 +290,14 @@ You can explicitly set the previous record(s) of the record you are creating (by
               })
             }
             delete options.file
-            return exec('POST', '/records', options, data, { 'content-type': 'application/octet-stream' })
+            let headers = { 'content-type': 'application/octet-stream' }
+            if (process.env.PRECEDENCE_PRIVATE_KEY) {
+              const signature = require('../../common/src/signature')
+              headers['precedence-address'] = signature.privateToAddress(process.env.PRECEDENCE_PRIVATE_KEY)
+              headers['precedence-signature'] = signature.sign(
+                  Buffer.from(options.hash || require('../../common/src/utils').sha256(data), 'hex'), process.env.PRECEDENCE_PRIVATE_KEY)
+            }
+            return exec('POST', '/records', options, data, headers)
           }
         },
         get: {
